@@ -418,6 +418,45 @@ const LEVEL_DEFS=[
       {x:13*T, y:11*T-10, w:8, h:10, ox:13*T, range:10*T, speed:1.5, dir:1, facingRight:true},
     ],
   },
+    // ── NIVEAU 8 ─────────────────────────────────────────────────────
+  {
+    name:'Niveau 8 : Les Cavernes malicieuses',
+    theme:'cavern',
+    map:[
+      "                                        ",
+      "                                    C   ",
+      "                                    G   ",
+      "                                   TTT  ",
+      "                                        ",
+      "                    TTTT                ",
+      "                                        ",
+      "  T         T                           ",
+      "  T                                     ",
+      "  T                                     ",
+      "  T                                     ",
+      "  T                                     ",
+      "  T                                     ",
+      "  T           A                         ",
+      "  T    TTTTTTTTTTTTTTTT                 ",
+      "  T                                     ",
+      " DT                            TTTTTTTTT",
+      "TTTTTT                                  ",
+      "                                      C ",
+      "                    B                 T ",
+      "TTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTTTTT TT",
+      "TTTTTTTTTATTTTTTTTTTTTTTTTBTTTTTTTTTTDTT",
+    ],
+    playerStart:{col:4,row:16},
+    movPlats:[
+      {ox:27*T,oy:6*T,x:27*T,y:6*T,w:2*T,h:T,range:7*T,speed:0.3,dir:1,axis:'y'},
+    ],
+    enemies:[
+      {x:8*T, y:14*T-10, w:8, h:10, ox:8*T, range:14*T, speed:10, dir:1, facingRight:true},
+      {x:1*T, y:20*T-10, w:8, h:10, ox:1*T, range:36*T, speed:15, dir:1, facingRight:true},
+      {x:1*T, y:20*T-10, w:8, h:10, ox:1*T, range:36*T, speed:10, dir:1, facingRight:true},
+      {x:1*T, y:20*T-10, w:8, h:10, ox:1*T, range:36*T, speed:5, dir:1, facingRight:true},
+    ],
+  },
 
 ];
 
@@ -1230,11 +1269,26 @@ function drawGame(){
   // Plateformes
   for(const mp of movPlats){
     const tx=mp.x-camera.x,ty=mp.y-camera.y;
-    ctx.fillStyle='#7c5c2a';ctx.fillRect(tx,ty,mp.w,mp.h);
-    ctx.fillStyle='#a07840';ctx.fillRect(tx,ty,mp.w,3);
-    ctx.fillStyle='#5a3f18';ctx.fillRect(tx,ty+mp.h-2,mp.w,2);
-    ctx.fillStyle='#78b85c';ctx.fillRect(tx,ty,mp.w,2);
-    ctx.fillStyle='#96d46e';ctx.fillRect(tx+1,ty,mp.w-2,1);
+    if(tx>-mp.w-2&&tx<W+2&&ty>-mp.h-2&&ty<H+2){
+      if(currentTheme==='cavern'){
+        // Plateforme roche : dalle de pierre grise avec arête lumineuse
+        ctx.fillStyle='#4a4658';ctx.fillRect(tx,ty,mp.w,mp.h);
+        ctx.fillStyle='#5e5a70';ctx.fillRect(tx,ty,mp.w,3);
+        ctx.fillStyle='#8a86a0';ctx.fillRect(tx,ty,mp.w,1);
+        ctx.fillStyle='#363248';ctx.fillRect(tx,ty+mp.h-2,mp.w,2);
+        // petites fissures décoratives
+        ctx.fillStyle='#2a2638';
+        ctx.fillRect(tx+Math.floor(mp.w*0.3),ty+4,1,4);
+        ctx.fillRect(tx+Math.floor(mp.w*0.65),ty+3,1,3);
+      } else {
+        // Plateforme prairie : bois + herbe
+        ctx.fillStyle='#7c5c2a';ctx.fillRect(tx,ty,mp.w,mp.h);
+        ctx.fillStyle='#a07840';ctx.fillRect(tx,ty,mp.w,3);
+        ctx.fillStyle='#5a3f18';ctx.fillRect(tx,ty+mp.h-2,mp.w,2);
+        ctx.fillStyle='#78b85c';ctx.fillRect(tx,ty,mp.w,2);
+        ctx.fillStyle='#96d46e';ctx.fillRect(tx+1,ty,mp.w-2,1);
+      }
+    }
   }
   // Ennemis
   drawEnemies();
