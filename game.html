@@ -105,6 +105,7 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;curso
   <div id="hud">
     <span id="lvl-hud">Niveau 1</span>
     <span>⏱ <span id="timer">0.00</span>s</span>
+    <span title="Temps total depuis le début">∑ <span id="timer-total">0.00</span>s</span>
     <span>🏆 <span id="best">--</span>s</span>
     <span>💀 <span id="deaths">0</span></span>
   </div>
@@ -468,6 +469,7 @@ let currentTheme='prairie';
 let LEVEL,COLS,ROWS,movPlats,spikes,goalPos,enemies,portals;
 let DECO=[],CLOUD_DATA=[],TREES=[];
 let state='title',player,particles=[],deaths=0,startTime=0,elapsed=0;
+let totalTimeBeforeLevel=0; // cumul du temps des niveaux précédents
 let bestTimes=new Array(LEVEL_DEFS.length).fill(null);
 let camera={x:0,y:0},cloudOffset=0;
 
@@ -476,6 +478,17 @@ function getTile(c,r){
   const l=LEVEL[r]||'';
   if(c<0||c>=l.length)return false;
   return l[c]==='T';
+}
+
+function updateThemeStyle(){
+  const isPrairie=currentTheme!=='cavern';
+  // Couleurs de fond selon le thème
+  const bg=isPrairie?'#0f1f0f':'#0d0c14';
+  document.getElementById('gc').style.background=bg;
+  document.body.style.background=bg;
+  // Bordure du canvas
+  const borderCol=isPrairie?'#2a4a2a':'#2a2638';
+  document.getElementById('canvas-wrap').style.outline=`3px solid ${borderCol}`;
 }
 
 function loadLevel(idx){
@@ -515,6 +528,7 @@ function loadLevel(idx){
   document.getElementById('lvl-hud').textContent=def.name.split(':')[0];
   const bt=bestTimes[idx]||null;
   document.getElementById('best').textContent=bt!==null?bt.toFixed(2):'--';
+  updateThemeStyle();
 }
 
 function buildDeco(){
@@ -735,17 +749,34 @@ window.addEventListener('keyup',e=>{keys[e.code]=false;});
 
 function startGame(){
   state='playing';
-  loadLevel(currentLevelIdx);
+  currentLevelIdx=0;
+  totalTimeBeforeLevel=0;
+  deaths=0;
+  document.getElementById('deaths').textContent=0;
+  loadLevel(0);
   initPlayer();
   particles=[];
   startTime=performance.now();
   elapsed=0;
+  camera={x:0,y:0};
+  updateThemeStyle();
+}
+
+function respawn(){
+  // Recharge le niveau actuel en conservant le temps déjà écoulé sur ce niveau
+  const elapsedBeforeDeath=elapsed;
+  state='playing';
+  loadLevel(currentLevelIdx);
+  initPlayer();
+  particles=[];
+  startTime=performance.now()-elapsedBeforeDeath*1000;
   camera={x:0,y:0};
 }
 
 function nextLevel(){
   const next=currentLevelIdx+1;
   if(next>=LEVEL_DEFS.length){state='won';return;}
+  totalTimeBeforeLevel+=elapsed; // cumul du temps du niveau terminé
   currentLevelIdx=next;
   state='playing';
   loadLevel(currentLevelIdx);
@@ -754,6 +785,7 @@ function nextLevel(){
   startTime=performance.now();
   elapsed=0;
   camera={x:0,y:0};
+  updateThemeStyle();
 }
 
 function startDash(){
@@ -792,10 +824,11 @@ function update(){
 
   elapsed=(performance.now()-startTime)/1000;
   document.getElementById('timer').textContent=elapsed.toFixed(2);
+  document.getElementById('timer-total').textContent=(totalTimeBeforeLevel+elapsed).toFixed(2);
 
   if(state==='dead'){
     if(player.deathTimer>0)player.deathTimer--;
-    else{deaths++;document.getElementById('deaths').textContent=deaths;startGame();}
+    else{deaths++;document.getElementById('deaths').textContent=deaths;respawn();}
     return;
   }
 
@@ -1341,14 +1374,14 @@ function drawLevelWon(){
   ctx.font='bold 30px monospace';ctx.fillStyle='#ffd700';
   ctx.fillText('🌿 NIVEAU '+(currentLevelIdx+1)+' TERMINÉ !',W/2,H/2-50);
   ctx.font='14px monospace';ctx.fillStyle='#c8f0a8';
-  ctx.fillText('Temps : '+elapsed.toFixed(2)+'s',W/2,H/2-16);
-  ctx.fillText('Morts : '+deaths,W/2,H/2+10);
+  ctx.fillText('Temps niveau : '+elapsed.toFixed(2)+'s',W/2,H/2-16);
+  ctx.fillText('Temps total : '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2+10);
   const bt=bestTimes[currentLevelIdx];
   if(bt!==null){ctx.fillStyle='#ffd700';ctx.fillText('Meilleur : '+bt.toFixed(2)+'s',W/2,H/2+36);}
-  // Aperçu niveau suivant
   ctx.font='13px monospace';ctx.fillStyle='#a8e0a8';
-  ctx.fillText('Prochain : '+LEVEL_DEFS[currentLevelIdx+1].name,W/2,H/2+68);
-  if(Math.floor(performance.now()/500)%2){ctx.fillStyle='#78b85c';ctx.font='14px monospace';ctx.fillText('▶  Espace pour continuer',W/2,H/2+96);}
+  ctx.fillText('Prochain : '+LEVEL_DEFS[currentLevelIdx+1].name,W/2,H/2+58);
+  ctx.fillStyle='#a8a8a8';ctx.fillText('Morts : '+deaths,W/2,H/2+76);
+  if(Math.floor(performance.now()/500)%2){ctx.fillStyle='#78b85c';ctx.font='14px monospace';ctx.fillText('▶  Espace pour continuer',W/2,H/2+100);}
   ctx.textAlign='left';
 }
 
@@ -1363,7 +1396,7 @@ function drawWon(){
   ctx.textAlign='center';
   ctx.font='bold 34px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🏆 TOUS LES NIVEAUX !',W/2,H/2-40);
   ctx.font='15px monospace';ctx.fillStyle='#c8f0a8';
-  ctx.fillText('Temps total : '+elapsed.toFixed(2)+'s',W/2,H/2);
+  ctx.fillText('Temps total : '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2);
   ctx.fillText('Morts total : '+deaths,W/2,H/2+24);
   ctx.font='12px monospace';ctx.fillStyle='#789a78';ctx.fillText('R pour recommencer',W/2,H/2+60);
   ctx.textAlign='left';
