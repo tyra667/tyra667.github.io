@@ -11,7 +11,6 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;min-height:100%;background:#0f1f0f;font-family:'Courier New',monospace;}
 
-  /* ===== Layout général : 3 colonnes (pub | jeu | pub) ===== */
   #layout{
     display:flex;
     min-height:100vh;
@@ -21,11 +20,9 @@
     padding:10px;
   }
 
-  /* ===== Colonnes publicitaires ===== */
   .ad-col{
-    flex:0 0 auto;
-    width:160px;          /* taille standard "Wide Skyscraper" 160x600 */
-    min-height:600px;
+    flex:0 0 160px;
+    min-height:510px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -36,36 +33,37 @@
     text-align:center;
     border-radius:6px;
   }
+  @media(max-width:1100px){.ad-col{display:none;}}
 
-  /* Sur petits écrans, on cache les pubs latérales pour ne pas gêner le jeu */
-  @media (max-width: 1100px){
-    .ad-col{display:none;}
-  }
-
-  /* ===== Colonne centrale = le jeu ===== */
   #game-col{
     flex:0 0 auto;
     display:flex;
     flex-direction:column;
     align-items:center;
+    gap:8px;
   }
 
+  /* L'iframe enveloppe exactement le canvas + HUD + ctrl de game.html */
   #game-frame{
     border:none;
-    width:960px;
-    height:1520px;
-    max-width:200vw;
-    max-height:180vh;
+    display:block;
+    width:640px;
+    height:506px;   /* HUD ~32 + canvas 420 * (640/640) + ctrl ~30 + marges ~24 */
     background:#0f1f0f;
+    border-radius:4px;
+  }
+  @media(max-width:700px){
+    #game-frame{
+      width:100vw;
+      height:calc(100vw * 506 / 640);
+    }
   }
 
-  /* ===== Bandeau pub en bas sur mobile ===== */
   #ad-bottom{
     display:none;
     width:100%;
     max-width:480px;
     min-height:90px;
-    margin-top:10px;
     background:rgba(255,255,255,0.03);
     border:1px dashed #334433;
     color:#556655;
@@ -73,54 +71,29 @@
     align-items:center;
     justify-content:center;
     border-radius:6px;
+    text-align:center;
   }
-  @media (max-width: 1100px){
-    #ad-bottom{display:flex;}
-  }
+  @media(max-width:1100px){#ad-bottom{display:flex;}}
 
   footer{
     text-align:center;
     color:#445544;
     font-size:11px;
-    padding:8px;
+    padding:4px 8px;
   }
 </style>
 </head>
 <body>
-
 <div id="layout">
+  <div class="ad-col" id="ad-left">Publicité</div>
 
-  <!-- ===== PUB GAUCHE ===== -->
-  <div class="ad-col" id="ad-left">
-    <!-- ===================================================
-         EMPLACEMENT PUB N°1 (colonne gauche, 160x600)
-         Remplace ce commentaire par ton code AdSense
-         (voir le fichier instructions.md)
-    ==================================================== -->
-    Publicité
-  </div>
-
-  <!-- ===== JEU ===== -->
   <div id="game-col">
-    <iframe id="game-frame" src="game.html" title="DashR"></iframe>
-    <div id="ad-bottom">
-      <!-- ===================================================
-           EMPLACEMENT PUB MOBILE (bannière 320x90 ou responsive)
-      ==================================================== -->
-      Publicité
-    </div>
-    <footer>Jeu créé par Tyra667 - DashR</footer>
+    <iframe id="game-frame" src="game.html" title="DashR" scrolling="no"></iframe>
+    <div id="ad-bottom">Publicité</div>
+    <footer>Jeu créé par Tyra667 — DashR</footer>
   </div>
 
-  <!-- ===== PUB DROITE ===== -->
-  <div class="ad-col" id="ad-right">
-    <!-- ===================================================
-         EMPLACEMENT PUB N°2 (colonne droite, 160x600)
-    ==================================================== -->
-    Publicité
-  </div>
-
+  <div class="ad-col" id="ad-right">Publicité</div>
 </div>
-
 </body>
 </html>
