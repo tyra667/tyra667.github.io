@@ -160,12 +160,14 @@ let aCtx=null;
 function getACtx(){if(!aCtx){try{aCtx=new AudioCtx();}catch(e){}}return aCtx;}
 function playTone(freq,type,dur,vol,startFreq){
   const a=getACtx();if(!a)return;
+  const scale=(typeof settings!=='undefined')?(settings.sfxVolume*settings.masterVolume):1;
+  if(scale<=0)return;
   const o=a.createOscillator(),g=a.createGain();
   o.connect(g);g.connect(a.destination);
   o.type=type||'square';
   if(startFreq){o.frequency.setValueAtTime(startFreq,a.currentTime);o.frequency.exponentialRampToValueAtTime(freq,a.currentTime+dur*0.5);}
   else o.frequency.setValueAtTime(freq,a.currentTime);
-  g.gain.setValueAtTime((vol||0.12),a.currentTime);
+  g.gain.setValueAtTime((vol||0.12)*scale,a.currentTime);
   g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
   o.start();o.stop(a.currentTime+dur);
 }
@@ -459,6 +461,107 @@ const LEVEL_DEFS=[
     ],
   },
 
+  // ── NIVEAU 9 ─────────────────────────────────────────────────────
+  {
+    name:'Niveau 9 : L\'Abîme Gardé',
+    theme:'cavern',
+    map:[
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "T                                      T",
+      "T  G       A                        A  T",
+      "T TTTT     T    S        S          T  T",
+      "T           TTTTTTTTTTTTTTTTT          T",
+      "T                                      T",
+      "T      S              S       S        T",
+      "T   TTTTTT        TTTTTT   TTTTTT      T",
+      "T                                      T",
+      "T                                      T",
+      "T       B          C          D        T",
+      "T    TTTTTTT    TTTTTTT    TTTTTTT     T",
+      "T                                      T",
+      "T   S     S   S      S    S     S   S  T",
+      "T TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT T",
+      "T                                      T",
+      "T    C                    B            T",
+      "T  TTTTT                TTTTT          T",
+      "T                                      T",
+      "T        S   S     S   S     S    S    T",
+      "T  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT T",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+    ],
+    playerStart:{col:37,row:19},
+    movPlats:[
+      // Plateforme verticale dans le vide central
+      {ox:20*T,oy:5*T,x:20*T,y:5*T,w:3*T,h:T,range:6*T,speed:1.2,dir:1,axis:'y'},
+      // Plateforme horizontale qui traverse la salle du bas
+      {ox:5*T,oy:15*T,x:5*T,y:15*T,w:3*T,h:T,range:28*T,speed:1.8,dir:1,axis:'x'},
+      // Petite plateforme rapide dans la salle du milieu
+      {ox:8*T,oy:11*T,x:8*T,y:11*T,w:2*T,h:T,range:5*T,speed:2.0,dir:1,axis:'x'},
+    ],
+    enemies:[
+      // Gardiens sur les îlots du milieu (row 11)
+      {x:5*T,  y:11*T-10, w:8, h:10, ox:5*T,  range:6*T,  speed:1.8, dir:1, facingRight:true},
+      {x:17*T, y:11*T-10, w:8, h:10, ox:17*T, range:6*T,  speed:2.0, dir:-1, facingRight:false},
+      {x:28*T, y:11*T-10, w:8, h:10, ox:28*T, range:6*T,  speed:1.8, dir:1, facingRight:true},
+      // Patrouilleurs sur la grande plateforme du bas (row 14)
+      {x:4*T,  y:14*T-10, w:8, h:10, ox:4*T,  range:34*T, speed:2.5, dir:1, facingRight:true},
+      {x:20*T, y:14*T-10, w:8, h:10, ox:4*T,  range:34*T, speed:2.5, dir:-1, facingRight:false},
+      // Gardiens section basse (row 20)
+      {x:4*T,  y:20*T-10, w:8, h:10, ox:4*T,  range:33*T, speed:3.0, dir:1, facingRight:true},
+      {x:22*T, y:20*T-10, w:8, h:10, ox:4*T,  range:33*T, speed:3.0, dir:-1, facingRight:false},
+    ],
+  },
+
+  // ── NIVEAU 10 ────────────────────────────────────────────────────
+  {
+    name:'Niveau 10 : Le Sanctuaire Final',
+    theme:'cavern',
+    map:[
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "T                                      T",
+      "T                    G                 T",
+      "T     A         S   TTT    S         A T",
+      "T     T   S   TTTTTTTTTTTTTTT  S    T  T",
+      "T     T TTTTT                 TTTTT T  T",
+      "T     T                             T  T",
+      "T     TTTTTTTTTTTTTTTTTT TTTTTTTTTTTT  T",
+      "T B                                  C T",
+      "T T    S     S     S     S     S     T T",
+      "T TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT T",
+      "T                                      T",
+      "T   C             S             B      T",
+      "T   T   S  S    TTTTT    S  S   T      T",
+      "T   TTTTTTTTT           TTTTTTTTT      T",
+      "T         S                   S        T",
+      "T  TTTTTTTTTTTTTTTTT TTTTTTTTTTTTTTT   T",
+      "T                                      T",
+      "T       S   S    D    S   S            T",
+      "T    TTTTTTTTTTTTTTTTTTTTTTTTTTTTT     T",
+      "T D                                    T",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+    ],
+    playerStart:{col:37,row:21},
+    movPlats:[
+      // Plateforme lente qui relie le bas au couloir encaissé
+      {ox:13*T,oy:17*T,x:13*T,y:17*T,w:4*T,h:T,range:8*T,speed:0.8,dir:1,axis:'x'},
+      // Petite plateforme oscillante dans la salle centrale haute
+      {ox:18*T,oy:6*T,x:18*T,y:6*T,w:3*T,h:T,range:4*T,speed:2.2,dir:1,axis:'x'},
+    ],
+    enemies:[
+      // Gardiens de la salle basse (row 19-20)
+      {x:5*T,  y:19*T-10, w:8, h:10, ox:5*T,  range:13*T, speed:2.0, dir:1,  facingRight:true},
+      {x:20*T, y:19*T-10, w:8, h:10, ox:20*T, range:8*T,  speed:2.5, dir:-1, facingRight:false},
+      // Patrouilleurs du long couloir (row 10-11)
+      {x:3*T,  y:10*T-10, w:8, h:10, ox:3*T,  range:33*T, speed:3.2, dir:1,  facingRight:true},
+      {x:3*T,  y:10*T-10, w:8, h:10, ox:3*T,  range:33*T, speed:2.8, dir:1,  facingRight:true},
+      // Gardiens rapides de la salle du milieu (row 13-14)
+      {x:5*T,  y:14*T-10, w:8, h:10, ox:5*T,  range:8*T, speed:2.8, dir:1,  facingRight:true},
+      {x:24*T, y:14*T-10, w:8, h:10, ox:24*T, range:8*T, speed:2.8, dir:-1, facingRight:false},
+      // Élite rapide sur le couloir encaissé (row 7)
+      {x:7*T,  y:7*T-10,  w:8, h:10, ox:7*T,  range:28*T, speed:4.0, dir:1,  facingRight:true},
+    ],
+  },
+
 ];
 
 // ══════════════════════════════════════════════════════════════════
@@ -653,12 +756,12 @@ const keys={};
 let jumpPressed=false,dashPressed=false;
 window.addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','KeyZ','KeyX','KeyR','KeyA','KeyD','KeyW','KeyS'].includes(e.code))e.preventDefault();
+  if(state==='title')return; // handled by menuKeydown (capture phase)
   if(!keys[e.code]){
-    if(e.code==='KeyZ'||e.code==='Space')jumpPressed=true;
-    if(e.code==='KeyX')dashPressed=true;
-    if(e.code==='KeyR'){if(state==='playing'||state==='dead'||state==='won'||state==='levelwon')startGame();}
-    if(e.code==='Space'||e.code==='KeyZ'){
-      if(state==='title')startGame();
+    if(e.code===settings.keys.jump||e.code==='Space')jumpPressed=true;
+    if(e.code===settings.keys.dash)dashPressed=true;
+    if(e.code===settings.keys.restart){if(state==='playing'||state==='dead'||state==='won'||state==='levelwon')startGame();}
+    if(e.code==='Space'||e.code===settings.keys.jump){
       if(state==='won')startGame();
       if(state==='levelwon')nextLevel();
     }
@@ -748,6 +851,7 @@ window.addEventListener('keyup',e=>{keys[e.code]=false;});
 })();
 
 function startGame(){
+  menuState='main';menuCursor=0;
   state='playing';
   currentLevelIdx=0;
   totalTimeBeforeLevel=0;
@@ -789,8 +893,8 @@ function nextLevel(){
 }
 
 function startDash(){
-  const dx=(keys['ArrowRight']||keys['KeyD'])?1:(keys['ArrowLeft']||keys['KeyA'])?-1:(player.facingRight?1:-1);
-  const dy=(keys['ArrowUp']||keys['KeyW'])?-1:(keys['ArrowDown']||keys['KeyS'])?1:0;
+  const dx=(keys['ArrowRight']||keys[settings.keys.right])?1:(keys['ArrowLeft']||keys[settings.keys.left])?-1:(player.facingRight?1:-1);
+  const dy=(keys['ArrowUp'])?-1:(keys['ArrowDown'])?1:0;
   const len=Math.sqrt(dx*dx+dy*dy);
   player.dashVx=(dx/len)*5.5;
   player.dashVy=dy!==0?(dy/len)*5.5:0;
@@ -841,8 +945,8 @@ function update(){
   if(player.wallJumpLock>0)player.wallJumpLock--;
 
   if(!player.dashing){
-    const goLeft=keys['ArrowLeft']||keys['KeyA'];
-    const goRight=keys['ArrowRight']||keys['KeyD'];
+    const goLeft=keys['ArrowLeft']||keys[settings.keys.left];
+    const goRight=keys['ArrowRight']||keys[settings.keys.right];
     if(player.wallJumpLock<=0){
       if(goLeft){player.vx-=0.5;player.facingRight=false;}
       else if(goRight){player.vx+=0.5;player.facingRight=true;}
@@ -1334,7 +1438,7 @@ function drawGame(){
   // Joueur
   if(state==='playing'&&!player.dead){
     const px=Math.round(player.x-camera.x),py=Math.round(player.y-camera.y);
-    const bodyColor=player.dashing?'#ff9f43':'#111111';
+    const bodyColor=player.dashing?(settings.playerSecondary||'#ff9f43'):(settings.playerColor==='rainbow'?`hsl(${(performance.now()/8)%360},90%,55%)`:(settings.playerColor||'#111111'));
     drawStickFigure(px,py,player.facingRight,Math.abs(player.vx)>0.2,bodyColor,false);
     if(!player.canDash&&!player.dashing){
       ctx.fillStyle='rgba(233,69,96,0.25)';ctx.beginPath();ctx.arc(px+4,py+5,6,0,Math.PI*2);ctx.fill();
@@ -1346,19 +1450,371 @@ function drawGame(){
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+// ── MENU SYSTÈME ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+
+// Settings state
+const settings = {
+  sfxVolume: 1.0,      // 0..1
+  masterVolume: 1.0,   // 0..1
+  playerColor: '#111111',
+  playerSecondary: '#ff9f43',
+  playerEyes: '#ffffff',
+  keys: {
+    left:  'ArrowLeft',
+    right: 'ArrowRight',
+    jump:  'KeyZ',
+    dash:  'KeyX',
+    restart: 'KeyR',
+  }
+};
+
+const PLAYER_COLORS = [
+  {label:'Noir',     body:'#111111', dash:'#ff9f43', eyes:'#ffffff'},
+  {label:'Bleu',     body:'#1a4a9e', dash:'#7ec8ff', eyes:'#ffffff'},
+  {label:'Rouge',    body:'#9e1a1a', dash:'#ffb347', eyes:'#fff176'},
+  {label:'Vert',     body:'#1a6e2e', dash:'#7ed957', eyes:'#ffffff'},
+  {label:'Violet',   body:'#5a1a8e', dash:'#c490ff', eyes:'#ffffff'},
+  {label:'Rose',     body:'#9e1a6e', dash:'#ff9de2', eyes:'#ffffff'},
+  {label:'Or',       body:'#7a5a00', dash:'#ffd700', eyes:'#ffffff'},
+  {label:'Blanc',    body:'#dddddd', dash:'#ff9f43', eyes:'#111111'},
+  {label:'Cyan',     body:'#0a6e7a', dash:'#7fffd4', eyes:'#ffffff'},
+  {label:'Orange',   body:'#8e4a00', dash:'#ffdb58', eyes:'#ffffff'},
+  {label:'Spectre',  body:'rainbow',  dash:'#ffffff', eyes:'#ffffff'},
+];
+
+let menuState = 'main'; // 'main' | 'settings' | 'keys' | 'dressing'
+let menuCursor = 0;
+let rebindTarget = null; // which key is being rebound
+let rebindFlash = 0;
+let dressingCursor = 0;
+let selectedColorIdx = 0;
+
+const MAIN_ITEMS = ['▶  PLAY', '⚙  SETTINGS', '🎮  KEYBOARD', '👕  DRESSING'];
+
+function keyLabel(code) {
+  const map = {
+    ArrowLeft:'←', ArrowRight:'→', ArrowUp:'↑', ArrowDown:'↓',
+    Space:'Espace', KeyZ:'Z', KeyX:'X', KeyR:'R', KeyA:'A', KeyD:'D',
+    KeyW:'W', KeyS:'S', KeyQ:'Q', KeyE:'E', KeyF:'F', ShiftLeft:'Maj',
+    ControlLeft:'Ctrl', AltLeft:'Alt',
+  };
+  return map[code] || code.replace('Key','').replace('Arrow','').replace('Digit','');
+}
+
+function menuKeydown(e) {
+  if(state !== 'title') return;
+
+  // Rebinding mode
+  if(rebindTarget) {
+    if(e.code === 'Escape') { rebindTarget = null; return; }
+    // avoid assigning keys already used for menu nav
+    settings.keys[rebindTarget] = e.code;
+    rebindTarget = null;
+    rebindFlash = 40;
+    // Update keydown listener references
+    e.preventDefault();
+    return;
+  }
+
+  e.preventDefault();
+
+  if(menuState === 'main') {
+    if(e.code==='ArrowUp')   { menuCursor=(menuCursor-1+MAIN_ITEMS.length)%MAIN_ITEMS.length; }
+    if(e.code==='ArrowDown') { menuCursor=(menuCursor+1)%MAIN_ITEMS.length; }
+    if(e.code==='Space'||e.code==='KeyZ'||e.code==='Enter') {
+      if(menuCursor===0) { startGame(); return; }
+      if(menuCursor===1) { menuState='settings'; menuCursor=0; }
+      if(menuCursor===2) { menuState='keys'; menuCursor=0; }
+      if(menuCursor===3) { menuState='dressing'; dressingCursor=selectedColorIdx; }
+    }
+  } else if(menuState==='settings') {
+    const items=['sfxVolume','masterVolume'];
+    if(e.code==='ArrowUp')    { menuCursor=(menuCursor-1+items.length)%items.length; }
+    if(e.code==='ArrowDown')  { menuCursor=(menuCursor+1)%items.length; }
+    if(e.code==='ArrowRight') { settings[items[menuCursor]]=Math.min(1,+(settings[items[menuCursor]]+0.1).toFixed(1)); }
+    if(e.code==='ArrowLeft')  { settings[items[menuCursor]]=Math.max(0,+(settings[items[menuCursor]]-0.1).toFixed(1)); }
+    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=1; }
+  } else if(menuState==='keys') {
+    const kItems=Object.keys(settings.keys);
+    if(e.code==='ArrowUp')   { menuCursor=(menuCursor-1+kItems.length)%kItems.length; }
+    if(e.code==='ArrowDown') { menuCursor=(menuCursor+1)%kItems.length; }
+    if(e.code==='Space'||e.code==='KeyZ'||e.code==='Enter') { rebindTarget=kItems[menuCursor]; }
+    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=2; }
+  } else if(menuState==='dressing') {
+    if(e.code==='ArrowLeft')  { dressingCursor=(dressingCursor-1+PLAYER_COLORS.length)%PLAYER_COLORS.length; }
+    if(e.code==='ArrowRight') { dressingCursor=(dressingCursor+1)%PLAYER_COLORS.length; }
+    if(e.code==='Space'||e.code==='KeyZ'||e.code==='Enter') {
+      selectedColorIdx=dressingCursor;
+      applyPlayerColor(selectedColorIdx);
+    }
+    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=3; }
+  }
+}
+
+function applyPlayerColor(idx) {
+  const c=PLAYER_COLORS[idx];
+  settings.playerColor = c.body;
+  settings.playerSecondary = c.dash;
+  settings.playerEyes = c.eyes;
+}
+
+// Hook menu keydown into the existing keydown listener (before game keys)
+const _origKeydown = window.onkeydown;
+window.addEventListener('keydown', menuKeydown, true); // capture phase
+
+// ── Dessin helpers UI ──────────────────────────────────────────────
+function drawMenuPanel(x,y,w,h){
+  ctx.save();
+  ctx.fillStyle='rgba(8,20,8,0.88)';
+  ctx.strokeStyle='rgba(120,180,80,0.45)';
+  ctx.lineWidth=1.5;
+  const r=6;
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+  ctx.fill();ctx.stroke();
+  ctx.restore();
+}
+
+function drawVolumeBar(x,y,w,h,val,active){
+  ctx.fillStyle=active?'rgba(150,212,110,0.2)':'rgba(80,120,50,0.15)';
+  ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=active?'#78d450':'#4a8a30';
+  ctx.fillRect(x,y,Math.round(w*val),h);
+  ctx.strokeStyle=active?'#a0e060':'#558840';
+  ctx.lineWidth=1;ctx.strokeRect(x,y,w,h);
+  ctx.fillStyle='#c8f0a8';ctx.font='10px monospace';ctx.textAlign='right';
+  ctx.fillText(Math.round(val*100)+'%',x+w+28,y+h-1);
+}
+
+function drawStickFigureMenu(px,py,facing,moving,bodyColor,dashColor,eyeColor){
+  const scale=3; // bigger for dressing screen
+  const cx=px;
+  ctx.strokeStyle=bodyColor==='rainbow'?`hsl(${(performance.now()/8)%360},90%,55%)`:bodyColor;
+  ctx.fillStyle=ctx.strokeStyle;
+  ctx.lineWidth=2*scale/3;ctx.lineCap='round';
+  const s=scale;
+  // Tête
+  ctx.beginPath();ctx.arc(cx,py+2*s,2.5*s,0,Math.PI*2);ctx.fill();
+  // Yeux
+  ctx.fillStyle=eyeColor;
+  const ed=facing?0.8:-0.8;
+  ctx.beginPath();ctx.arc(cx+ed*s,py+1.6*s,0.6*s,0,Math.PI*2);ctx.fill();
+  // Corps
+  ctx.strokeStyle=bodyColor==='rainbow'?`hsl(${(performance.now()/8)%360},90%,55%)`:bodyColor;
+  ctx.beginPath();ctx.moveTo(cx,py+4.5*s);ctx.lineTo(cx,py+8*s);ctx.stroke();
+  // Jambes
+  const lp=moving?(Math.floor(performance.now()/120)%2===0?s:-s):0;
+  ctx.beginPath();ctx.moveTo(cx,py+8*s);ctx.lineTo(cx-2*s+lp,py+11*s);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,py+8*s);ctx.lineTo(cx+2*s-lp,py+11*s);ctx.stroke();
+  // Bras
+  const ad=facing?1:-1;
+  ctx.beginPath();ctx.moveTo(cx,py+5.5*s);ctx.lineTo(cx+ad*3*s,py+7*s);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,py+5.5*s);ctx.lineTo(cx-ad*2*s,py+7*s);ctx.stroke();
+}
+
 // ── Écrans ────────────────────────────────────────────────────────
 function drawTitle(){
   drawBackground();
-  ctx.fillStyle='rgba(20,40,15,0.55)';ctx.fillRect(0,0,W,H);
-  ctx.font='bold 48px monospace';ctx.textAlign='center';
-  ctx.fillStyle='#2d5a1b';ctx.fillText('DashR',W/2+2,H/2-48+2);
-  ctx.fillStyle='#96d46e';ctx.fillText('DashR',W/2,H/2-48);
-  ctx.font='13px monospace';ctx.fillStyle='#a8d8a8';
-  ctx.fillText('— Niveau 1 : La Prairie —',W/2,H/2-18);
+
+  if(menuState==='main')       drawMenuMain();
+  else if(menuState==='settings') drawMenuSettings();
+  else if(menuState==='keys')  drawMenuKeys();
+  else if(menuState==='dressing') drawMenuDressing();
+}
+
+function drawMenuMain(){
+  // Titre
+  ctx.textAlign='center';
+  ctx.font='bold 52px monospace';
+  ctx.fillStyle='#1a3a0a';ctx.fillText('DashR',W/2+2,90+2);
+  ctx.fillStyle='#96d46e';ctx.fillText('DashR',W/2,90);
+  // Sous-titre animé
+  const pulse=0.7+Math.sin(performance.now()*0.003)*0.3;
+  ctx.globalAlpha=pulse;
   ctx.font='11px monospace';ctx.fillStyle='#6a9a6a';
-  ['← → Déplacer','Z / Espace  Sauter','X  Dash (8 directions)','Mur + ↑  Wall-jump'].forEach((t,i)=>ctx.fillText(t,W/2,H/2+16+i*17));
-  if(Math.floor(performance.now()/500)%2){ctx.fillStyle='#78b85c';ctx.font='14px monospace';ctx.fillText('▶  Appuie sur Espace pour jouer',W/2,H/2+100);}
-  ctx.textAlign='left';
+  ctx.fillText('— PLATFORMER EXTRÊME —',W/2,112);
+  ctx.globalAlpha=1;
+
+  // Panel menu
+  const pw=220,ph=MAIN_ITEMS.length*38+28;
+  const px=W/2-pw/2,py=H/2-ph/2+20;
+  drawMenuPanel(px,py,pw,ph);
+
+  MAIN_ITEMS.forEach((item,i)=>{
+    const iy=py+24+i*38;
+    const active=menuCursor===i;
+    if(active){
+      ctx.fillStyle='rgba(120,200,80,0.18)';
+      ctx.fillRect(px+8,iy-16,pw-16,28);
+      ctx.fillStyle='#a0e050';
+      ctx.font='bold 13px monospace';
+    } else {
+      ctx.fillStyle='#6a9a6a';
+      ctx.font='13px monospace';
+    }
+    ctx.textAlign='center';
+    ctx.fillText(item,W/2,iy);
+    if(active){
+      const blink=Math.floor(performance.now()/300)%2;
+      if(blink){ctx.fillStyle='#78d450';ctx.fillText('›',px+18,iy);}
+    }
+  });
+
+  // Footer
+  ctx.font='10px monospace';ctx.fillStyle='#3a5a3a';ctx.textAlign='center';
+  ctx.fillText('↑↓ naviguer  •  Espace/Z confirmer',W/2,H-14);
+}
+
+function drawMenuSettings(){
+  ctx.textAlign='center';
+  ctx.font='bold 16px monospace';ctx.fillStyle='#96d46e';
+  ctx.fillText('⚙ PARAMÈTRES AUDIO',W/2,55);
+
+  const pw=300,ph=160;
+  const px=W/2-pw/2,py=72;
+  drawMenuPanel(px,py,pw,ph);
+
+  const items=[
+    {key:'sfxVolume',    label:'Effets sonores'},
+    {key:'masterVolume', label:'Volume global'},
+  ];
+  items.forEach(({key,label},i)=>{
+    const iy=py+40+i*56;
+    const active=menuCursor===i;
+    ctx.font=(active?'bold ':'')+'11px monospace';
+    ctx.fillStyle=active?'#c8f0a8':'#6a9a6a';
+    ctx.textAlign='left';ctx.fillText(label,px+18,iy-8);
+    drawVolumeBar(px+18,iy,pw-60,12,settings[key],active);
+    if(active){
+      ctx.fillStyle='#78d450';ctx.font='14px monospace';ctx.textAlign='left';
+      ctx.fillText('◀',px+18-14,iy+10);ctx.textAlign='right';
+      ctx.fillText('▶',px+pw-42+8,iy+10);
+    }
+  });
+
+  // Test son
+  ctx.font='10px monospace';ctx.fillStyle='#3a6a3a';ctx.textAlign='center';
+  ctx.fillText('← → ajuster  •  Échap retour',W/2,py+ph+16);
+}
+
+function drawMenuKeys(){
+  ctx.textAlign='center';
+  ctx.font='bold 16px monospace';ctx.fillStyle='#96d46e';
+  ctx.fillText('🎮 CONFIGURATION DES TOUCHES',W/2,50);
+
+  const kItems=Object.keys(settings.keys);
+  const kLabels={left:'Aller à gauche',right:'Aller à droite',jump:'Sauter',dash:'Dash','restart':'Restart'};
+
+  const pw=320,ph=kItems.length*42+36;
+  const px=W/2-pw/2,py=64;
+  drawMenuPanel(px,py,pw,ph);
+
+  kItems.forEach((k,i)=>{
+    const iy=py+32+i*42;
+    const active=menuCursor===i;
+    const isRebinding=rebindTarget===k;
+
+    ctx.textAlign='left';
+    ctx.font=(active?'bold ':'')+'11px monospace';
+    ctx.fillStyle=active?'#c8f0a8':'#6a9a6a';
+    ctx.fillText(kLabels[k]||k,px+18,iy);
+
+    // Key badge
+    const bx=px+pw-90, bw=72, bh=22;
+    const by=iy-17;
+    if(isRebinding){
+      const rb=Math.floor(rebindFlash/4)%2;
+      ctx.fillStyle=rb?'rgba(233,69,96,0.5)':'rgba(233,69,96,0.2)';
+      ctx.strokeStyle='#e94560';
+    } else if(active){
+      ctx.fillStyle='rgba(120,200,80,0.25)';
+      ctx.strokeStyle='#78d450';
+    } else {
+      ctx.fillStyle='rgba(60,100,40,0.3)';
+      ctx.strokeStyle='#3a6a3a';
+    }
+    ctx.lineWidth=1;ctx.fillRect(bx,by,bw,bh);ctx.strokeRect(bx,by,bw,bh);
+    ctx.font='bold 11px monospace';ctx.textAlign='center';
+    ctx.fillStyle=isRebinding?'#ff8888':active?'#a0e050':'#789a78';
+    ctx.fillText(isRebinding?'Appuie...':keyLabel(settings.keys[k]),bx+bw/2,by+15);
+  });
+
+  if(rebindFlash>0)rebindFlash--;
+
+  ctx.font='10px monospace';ctx.fillStyle='#3a5a3a';ctx.textAlign='center';
+  ctx.fillText('Entrée/Z : changer  •  Échap : retour',W/2,py+ph+16);
+}
+
+function drawMenuDressing(){
+  ctx.textAlign='center';
+  ctx.font='bold 16px monospace';ctx.fillStyle='#96d46e';
+  ctx.fillText('👕 DRESSING — STYLE DU PERSONNAGE',W/2,50);
+
+  const pw=500,ph=240;
+  const px=W/2-pw/2,py=62;
+  drawMenuPanel(px,py,pw,ph);
+
+  const cols=6,rows=2;
+  const cellW=pw/cols, cellH=80;
+  const startY=py+16;
+
+  PLAYER_COLORS.forEach((c,i)=>{
+    const col=i%cols, row=Math.floor(i/cols);
+    const cx2=px+col*cellW+cellW/2;
+    const cy2=startY+row*cellH+20;
+    const active=dressingCursor===i;
+    const selected=selectedColorIdx===i;
+
+    if(active){
+      ctx.fillStyle='rgba(150,220,80,0.2)';
+      ctx.fillRect(px+col*cellW+4,startY+row*cellH+2,cellW-8,cellH-4);
+    }
+    if(selected){
+      ctx.strokeStyle='#ffd700';ctx.lineWidth=2;
+      ctx.strokeRect(px+col*cellW+4,startY+row*cellH+2,cellW-8,cellH-4);
+    }
+
+    // Mini bonhomme
+    const bodyC=c.body==='rainbow'?`hsl(${(performance.now()/8+(i*30))%360},90%,55%)`:c.body;
+    ctx.save();
+    ctx.strokeStyle=bodyC;ctx.fillStyle=bodyC;
+    ctx.lineWidth=1.5;ctx.lineCap='round';
+    // Tête
+    ctx.beginPath();ctx.arc(cx2,cy2,5,0,Math.PI*2);ctx.fill();
+    // Yeux
+    ctx.fillStyle=c.eyes;ctx.beginPath();ctx.arc(cx2+1.6,cy2-0.8,1.2,0,Math.PI*2);ctx.fill();
+    // Corps
+    ctx.strokeStyle=bodyC;
+    ctx.beginPath();ctx.moveTo(cx2,cy2+5);ctx.lineTo(cx2,cy2+14);ctx.stroke();
+    // Jambes
+    ctx.beginPath();ctx.moveTo(cx2,cy2+14);ctx.lineTo(cx2-3,cy2+20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx2,cy2+14);ctx.lineTo(cx2+3,cy2+20);ctx.stroke();
+    // Bras
+    ctx.beginPath();ctx.moveTo(cx2,cy2+8);ctx.lineTo(cx2+5,cy2+11);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx2,cy2+8);ctx.lineTo(cx2-4,cy2+11);ctx.stroke();
+    ctx.restore();
+
+    // Label
+    ctx.font=(active||selected?'bold ':'')+'9px monospace';
+    ctx.fillStyle=selected?'#ffd700':active?'#a0e050':'#5a7a5a';
+    ctx.textAlign='center';
+    ctx.fillText(c.label,cx2,cy2+30);
+    if(selected){ctx.fillText('✓',cx2,cy2+40);}
+  });
+
+  // Grand aperçu du personnage sélectionné
+  const pv=PLAYER_COLORS[dressingCursor];
+  const previewX=W/2, previewY=py+ph+20;
+  ctx.font='10px monospace';ctx.fillStyle='#6a9a6a';ctx.textAlign='center';
+  ctx.fillText('Aperçu : '+pv.label+' — Espace/Z pour appliquer  •  ← → naviguer  •  Échap retour',W/2,previewY-6);
+
+  // Gros bonhomme preview
+  const bodyP=pv.body==='rainbow'?`hsl(${(performance.now()/8)%360},90%,55%)`:pv.body;
+  drawStickFigureMenu(W/2,previewY,true,true,bodyP,pv.dash,pv.eyes);
 }
 
 function drawLevelWon(){
@@ -1379,7 +1835,8 @@ function drawLevelWon(){
   const bt=bestTimes[currentLevelIdx];
   if(bt!==null){ctx.fillStyle='#ffd700';ctx.fillText('Meilleur : '+bt.toFixed(2)+'s',W/2,H/2+36);}
   ctx.font='13px monospace';ctx.fillStyle='#a8e0a8';
-  ctx.fillText('Prochain : '+LEVEL_DEFS[currentLevelIdx+1].name,W/2,H/2+58);
+  const nextDef=LEVEL_DEFS[currentLevelIdx+1];
+  ctx.fillText(nextDef?'Prochain : '+nextDef.name:'Dernier niveau terminé !',W/2,H/2+58);
   ctx.fillStyle='#a8a8a8';ctx.fillText('Morts : '+deaths,W/2,H/2+76);
   if(Math.floor(performance.now()/500)%2){ctx.fillStyle='#78b85c';ctx.font='14px monospace';ctx.fillText('▶  Espace pour continuer',W/2,H/2+100);}
   ctx.textAlign='left';

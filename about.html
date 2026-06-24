@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — DashR</title>
+<meta name="description" content="About DashR — a free browser platformer game made by Tyra667. Learn about the game, how it was built, and what to expect.">
+<meta name="robots" content="index, follow">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1905225691499317" crossorigin="anonymous"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;min-height:100%;background:#0a0a0a;color:#aaa;font-family:monospace;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.13) 0px,rgba(0,0,0,0.13) 1px,transparent 1px,transparent 3px);}
+nav{position:relative;z-index:10;display:flex;justify-content:center;gap:28px;padding:10px 0 8px;
+  background:#0d0d0d;border-bottom:1px solid #222;}
+nav a{font-size:6px;letter-spacing:2px;color:#666;text-decoration:none;font-family:'Press Start 2P',monospace;}
+nav a:hover{color:#96d46e;}
+main{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:40px 24px 60px;}
+h1{font-family:'Press Start 2P',monospace;font-size:12px;letter-spacing:3px;color:#96d46e;margin-bottom:30px;}
+h2{font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:2px;color:#78b85c;margin:30px 0 12px;}
+p{font-size:13px;line-height:1.9;color:#777;margin-bottom:14px;}
+a{color:#96d46e;text-decoration:none;}
+a:hover{text-decoration:underline;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;}
+.stat{background:#0d0d0d;border:1px solid #1e1e1e;border-radius:3px;padding:14px 10px;text-align:center;}
+.stat .num{font-family:'Press Start 2P',monospace;font-size:14px;color:#96d46e;display:block;margin-bottom:6px;}
+.stat .lbl{font-size:11px;color:#444;}
+.tech-list{list-style:none;margin:10px 0;}
+.tech-list li{font-size:12px;color:#666;line-height:2;padding-left:14px;position:relative;}
+.tech-list li::before{content:'▸';color:#96d46e;position:absolute;left:0;}
+.cta{display:inline-block;margin-top:24px;padding:12px 24px;
+  background:#1a3a0a;border:2px solid #96d46e;border-radius:3px;
+  font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:2px;color:#96d46e;
+  text-decoration:none;}
+.cta:hover{background:#2a5a18;text-decoration:none;}
+footer{position:relative;z-index:1;font-family:'Press Start 2P',monospace;font-size:6px;color:#2a2a2a;
+  letter-spacing:2px;text-align:center;padding:16px 8px;border-top:1px solid #151515;}
+footer a{color:#3a5a3a;margin:0 8px;}footer a:hover{color:#96d46e;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">HOME</a>
+  <a href="about.html">ABOUT</a>
+  <a href="privacy-policy.html">PRIVACY POLICY</a>
+</nav>
+
+<main>
+  <h1>ABOUT DASHR</h1>
+
+  <p>
+    <strong style="color:#ccc;">DashR</strong> is a free browser-based platformer game created by
+    <strong style="color:#ccc;">Tyra667</strong>. The game was built entirely with vanilla HTML5,
+    CSS and JavaScript — no game engine, no framework, no external dependencies.
+    Just open your browser and play.
+  </p>
+
+  <div class="stat-grid">
+    <div class="stat"><span class="num">10</span><span class="lbl">levels</span></div>
+    <div class="stat"><span class="num">2</span><span class="lbl">worlds</span></div>
+    <div class="stat"><span class="num">0</span><span class="lbl">downloads</span></div>
+  </div>
+
+  <h2>THE GAME</h2>
+  <p>
+    DashR is a precision platformer where speed and movement mastery are everything.
+    Your character can run, jump, perform an 8-directional dash, and chain wall-jumps
+    to reach seemingly impossible platforms. Each death respawns you instantly at the
+    start of the level — no checkpoints, no lives. Just you, the timer, and the goal.
+  </p>
+  <p>
+    The game features two visual worlds: the sunlit <strong style="color:#ccc;">Meadow</strong>
+    (Levels 1–5), filled with brambles, trees and rolling hills, and the dark
+    <strong style="color:#ccc;">Iron Caverns</strong> (Levels 6–10), where teleport portals,
+    faster enemies and tighter layouts will test your reflexes to the limit.
+  </p>
+
+  <h2>FEATURES</h2>
+  <ul class="tech-list">
+    <li>10 handcrafted levels across 2 themed worlds</li>
+    <li>8-directional dash with directional wall-jump combo</li>
+    <li>Moving platforms, patrolling enemies, and teleport portals</li>
+    <li>Per-level best time tracking and total run timer</li>
+    <li>Full title screen with audio settings, key rebinding, and character dressing room</li>
+    <li>10 character color presets including an animated Rainbow mode</li>
+    <li>Procedurally generated background decorations (trees, flowers, cave crystals)</li>
+    <li>Retro chiptune sound effects via the Web Audio API</li>
+    <li>Mobile-friendly with virtual joystick and buttons</li>
+  </ul>
+
+  <h2>TECHNOLOGY</h2>
+  <p>
+    DashR is built with zero external dependencies. Everything — physics, rendering, audio,
+    input handling, level design, procedural decoration — is written from scratch in a single HTML file.
+  </p>
+  <ul class="tech-list">
+    <li>HTML5 Canvas API for all rendering</li>
+    <li>Web Audio API for procedural chiptune SFX</li>
+    <li>Touch Events API for mobile gamepad</li>
+    <li>Vanilla JavaScript — no libraries, no frameworks</li>
+    <li>Hosted on GitHub Pages — free, fast, and always available</li>
+  </ul>
+
+  <h2>PLAY NOW</h2>
+  <p>The game runs in any modern desktop browser. No account needed, no download, completely free.</p>
+  <a href="index.html" class="cta">▶ PLAY DASHR</a>
+
+</main>
+
+<footer>
+  DASHR © 2025 — TYRA667 &nbsp;|&nbsp;
+  <a href="index.html">HOME</a>
+  <a href="about.html">ABOUT</a>
+  <a href="privacy-policy.html">PRIVACY</a>
+</footer>
+
+</body>
+</html>
