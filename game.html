@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,18 +103,18 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;curso
 <body>
 <div id="gc">
   <div id="hud">
-    <span id="lvl-hud">Niveau 1</span>
+    <span id="lvl-hud">Level 1</span>
     <span>⏱ <span id="timer">0.00</span>s</span>
-    <span title="Temps total depuis le début">∑ <span id="timer-total">0.00</span>s</span>
+    <span title="Total time since the start">∑ <span id="timer-total">0.00</span>s</span>
     <span>🏆 <span id="best">--</span>s</span>
     <span>💀 <span id="deaths">0</span></span>
   </div>
   <div id="canvas-wrap"><canvas id="c"></canvas></div>
   <div id="ctrl">
-    <span><kbd>←</kbd><kbd>→</kbd> Déplacer</span>
-    <span><kbd>Z</kbd>/<kbd>Espace</kbd> Sauter</span>
+    <span><kbd>←</kbd><kbd>→</kbd> Move</span>
+    <span><kbd>Z</kbd>/<kbd>Space</kbd> Jump</span>
     <span><kbd>X</kbd> Dash</span>
-    <span><kbd>Espace</kbd>+mur Wall-jump</span>
+    <span><kbd>Space</kbd>+wall Wall-jump</span>
     <span><kbd>R</kbd> Restart</span>
   </div>
 </div>
@@ -194,7 +194,7 @@ function mulberry32(a){
 const LEVEL_DEFS=[
   // ── NIVEAU 1 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 1 : La Prairie',
+    name:'Level 1 : The Meadow',
     map:[
       "                                        ",
       "                                        ",
@@ -221,7 +221,7 @@ const LEVEL_DEFS=[
   },
   // ── NIVEAU 2 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 2 : La Prairie Hostile',
+    name:'Level 2 : The Hostile Meadow',
     map:[
       "                                        ",
       "                                        ",
@@ -255,7 +255,7 @@ const LEVEL_DEFS=[
   },
   // ── NIVEAU 3 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 3 : La Prairie vertigineuse',
+    name:'Level 3 : The Dizzying Meadow',
     map:[
       "                                        ",
       "                                        ",
@@ -287,7 +287,7 @@ const LEVEL_DEFS=[
   },
     // ── NIVEAU 4 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 4 : La Prairie ...',
+    name:'Level 4 : The Meadow ...',
     map:[
       "                                        ",
       "                                        ",
@@ -325,7 +325,7 @@ const LEVEL_DEFS=[
   },
     // ── NIVEAU 5 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 5 : La Prairie serpentueuse',
+    name:'Level 5 : The Winding Meadow',
     map:[
       "                                     G  ",
       "                                     T  ",
@@ -365,7 +365,7 @@ const LEVEL_DEFS=[
   },
     // ── NIVEAU 6 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 6 : Les Cavernes de Fer',
+    name:'Level 6 : The Iron Caverns',
     theme:'cavern',
     map:[
       "                                        ",
@@ -394,7 +394,7 @@ const LEVEL_DEFS=[
   },
   // ── NIVEAU 7 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 7 : Les Cavernes avec des portails',
+    name:'Level 7 : The Portal Caverns',
     theme:'cavern',
     map:[
       "                                        ",
@@ -423,7 +423,7 @@ const LEVEL_DEFS=[
   },
     // ── NIVEAU 8 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 8 : Les Cavernes malicieuses',
+    name:'Level 8 : The Treacherous Caverns',
     theme:'cavern',
     map:[
       "                                        ",
@@ -463,7 +463,7 @@ const LEVEL_DEFS=[
 
   // ── NIVEAU 9 ─────────────────────────────────────────────────────
   {
-    name:'Niveau 9 : L\'Abîme Gardé',
+    name:'Level 9 : The Guarded Abyss',
     theme:'cavern',
     map:[
       "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
@@ -514,7 +514,7 @@ const LEVEL_DEFS=[
 
   // ── NIVEAU 10 ────────────────────────────────────────────────────
   {
-    name:'Niveau 10 : Le Sanctuaire Final',
+    name:'Level 10 : The Final Sanctuary',
     theme:'cavern',
     map:[
       "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
@@ -1471,17 +1471,17 @@ const settings = {
 };
 
 const PLAYER_COLORS = [
-  {label:'Noir',     body:'#111111', dash:'#ff9f43', eyes:'#ffffff'},
-  {label:'Bleu',     body:'#1a4a9e', dash:'#7ec8ff', eyes:'#ffffff'},
-  {label:'Rouge',    body:'#9e1a1a', dash:'#ffb347', eyes:'#fff176'},
-  {label:'Vert',     body:'#1a6e2e', dash:'#7ed957', eyes:'#ffffff'},
-  {label:'Violet',   body:'#5a1a8e', dash:'#c490ff', eyes:'#ffffff'},
-  {label:'Rose',     body:'#9e1a6e', dash:'#ff9de2', eyes:'#ffffff'},
-  {label:'Or',       body:'#7a5a00', dash:'#ffd700', eyes:'#ffffff'},
-  {label:'Blanc',    body:'#dddddd', dash:'#ff9f43', eyes:'#111111'},
+  {label:'Black',    body:'#111111', dash:'#ff9f43', eyes:'#ffffff'},
+  {label:'Blue',     body:'#1a4a9e', dash:'#7ec8ff', eyes:'#ffffff'},
+  {label:'Red',      body:'#9e1a1a', dash:'#ffb347', eyes:'#fff176'},
+  {label:'Green',    body:'#1a6e2e', dash:'#7ed957', eyes:'#ffffff'},
+  {label:'Purple',   body:'#5a1a8e', dash:'#c490ff', eyes:'#ffffff'},
+  {label:'Pink',     body:'#9e1a6e', dash:'#ff9de2', eyes:'#ffffff'},
+  {label:'Gold',     body:'#7a5a00', dash:'#ffd700', eyes:'#ffffff'},
+  {label:'White',    body:'#dddddd', dash:'#ff9f43', eyes:'#111111'},
   {label:'Cyan',     body:'#0a6e7a', dash:'#7fffd4', eyes:'#ffffff'},
   {label:'Orange',   body:'#8e4a00', dash:'#ffdb58', eyes:'#ffffff'},
-  {label:'Spectre',  body:'rainbow',  dash:'#ffffff', eyes:'#ffffff'},
+  {label:'Rainbow',  body:'rainbow',  dash:'#ffffff', eyes:'#ffffff'},
 ];
 
 let menuState = 'main'; // 'main' | 'settings' | 'keys' | 'dressing'
@@ -1491,12 +1491,12 @@ let rebindFlash = 0;
 let dressingCursor = 0;
 let selectedColorIdx = 0;
 
-const MAIN_ITEMS = ['▶  PLAY', '⚙  SETTINGS', '🎮  KEYBOARD', '👕  DRESSING'];
+const MAIN_ITEMS = ['▶  PLAY', '⚙  SETTINGS', '🎮  CONTROLS', '👕  DRESSING'];
 
 function keyLabel(code) {
   const map = {
     ArrowLeft:'←', ArrowRight:'→', ArrowUp:'↑', ArrowDown:'↓',
-    Space:'Espace', KeyZ:'Z', KeyX:'X', KeyR:'R', KeyA:'A', KeyD:'D',
+    Space:'Space', KeyZ:'Z', KeyX:'X', KeyR:'R', KeyA:'A', KeyD:'D',
     KeyW:'W', KeyS:'S', KeyQ:'Q', KeyE:'E', KeyF:'F', ShiftLeft:'Maj',
     ControlLeft:'Ctrl', AltLeft:'Alt',
   };
@@ -1599,10 +1599,6 @@ function drawStickFigureMenu(px,py,facing,moving,bodyColor,dashColor,eyeColor){
   const s=scale;
   // Tête
   ctx.beginPath();ctx.arc(cx,py+2*s,2.5*s,0,Math.PI*2);ctx.fill();
-  // Yeux
-  ctx.fillStyle=eyeColor;
-  const ed=facing?0.8:-0.8;
-  ctx.beginPath();ctx.arc(cx+ed*s,py+1.6*s,0.6*s,0,Math.PI*2);ctx.fill();
   // Corps
   ctx.strokeStyle=bodyColor==='rainbow'?`hsl(${(performance.now()/8)%360},90%,55%)`:bodyColor;
   ctx.beginPath();ctx.moveTo(cx,py+4.5*s);ctx.lineTo(cx,py+8*s);ctx.stroke();
@@ -1636,7 +1632,7 @@ function drawMenuMain(){
   const pulse=0.7+Math.sin(performance.now()*0.003)*0.3;
   ctx.globalAlpha=pulse;
   ctx.font='11px monospace';ctx.fillStyle='#6a9a6a';
-  ctx.fillText('— PLATFORMER EXTRÊME —',W/2,112);
+  ctx.fillText('— EXTREME PLATFORMER —',W/2,112);
   ctx.globalAlpha=1;
 
   // Panel menu
@@ -1666,21 +1662,21 @@ function drawMenuMain(){
 
   // Footer
   ctx.font='10px monospace';ctx.fillStyle='#3a5a3a';ctx.textAlign='center';
-  ctx.fillText('↑↓ naviguer  •  Espace/Z confirmer',W/2,H-14);
+  ctx.fillText('↑↓ navigate  •  Space/Z confirm',W/2,H-14);
 }
 
 function drawMenuSettings(){
   ctx.textAlign='center';
   ctx.font='bold 16px monospace';ctx.fillStyle='#96d46e';
-  ctx.fillText('⚙ PARAMÈTRES AUDIO',W/2,55);
+  ctx.fillText('⚙ AUDIO SETTINGS',W/2,55);
 
   const pw=300,ph=160;
   const px=W/2-pw/2,py=72;
   drawMenuPanel(px,py,pw,ph);
 
   const items=[
-    {key:'sfxVolume',    label:'Effets sonores'},
-    {key:'masterVolume', label:'Volume global'},
+    {key:'sfxVolume',    label:'Sound Effects'},
+    {key:'masterVolume', label:'Master Volume'},
   ];
   items.forEach(({key,label},i)=>{
     const iy=py+40+i*56;
@@ -1698,16 +1694,16 @@ function drawMenuSettings(){
 
   // Test son
   ctx.font='10px monospace';ctx.fillStyle='#3a6a3a';ctx.textAlign='center';
-  ctx.fillText('← → ajuster  •  Échap retour',W/2,py+ph+16);
+  ctx.fillText('← → adjust  •  Esc back',W/2,py+ph+16);
 }
 
 function drawMenuKeys(){
   ctx.textAlign='center';
   ctx.font='bold 16px monospace';ctx.fillStyle='#96d46e';
-  ctx.fillText('🎮 CONFIGURATION DES TOUCHES',W/2,50);
+  ctx.fillText('🎮 KEY BINDINGS',W/2,50);
 
   const kItems=Object.keys(settings.keys);
-  const kLabels={left:'Aller à gauche',right:'Aller à droite',jump:'Sauter',dash:'Dash','restart':'Restart'};
+  const kLabels={left:'Move Left',right:'Move Right',jump:'Jump',dash:'Dash','restart':'Restart'};
 
   const pw=320,ph=kItems.length*42+36;
   const px=W/2-pw/2,py=64;
@@ -1740,19 +1736,19 @@ function drawMenuKeys(){
     ctx.lineWidth=1;ctx.fillRect(bx,by,bw,bh);ctx.strokeRect(bx,by,bw,bh);
     ctx.font='bold 11px monospace';ctx.textAlign='center';
     ctx.fillStyle=isRebinding?'#ff8888':active?'#a0e050':'#789a78';
-    ctx.fillText(isRebinding?'Appuie...':keyLabel(settings.keys[k]),bx+bw/2,by+15);
+    ctx.fillText(isRebinding?'Press key...':keyLabel(settings.keys[k]),bx+bw/2,by+15);
   });
 
   if(rebindFlash>0)rebindFlash--;
 
   ctx.font='10px monospace';ctx.fillStyle='#3a5a3a';ctx.textAlign='center';
-  ctx.fillText('Entrée/Z : changer  •  Échap : retour',W/2,py+ph+16);
+  ctx.fillText('Enter/Z : rebind  •  Esc : back',W/2,py+ph+16);
 }
 
 function drawMenuDressing(){
   ctx.textAlign='center';
   ctx.font='bold 16px monospace';ctx.fillStyle='#96d46e';
-  ctx.fillText('👕 DRESSING — STYLE DU PERSONNAGE',W/2,50);
+  ctx.fillText('👕 DRESSING — CHARACTER STYLE',W/2,50);
 
   const pw=500,ph=240;
   const px=W/2-pw/2,py=62;
@@ -1785,8 +1781,6 @@ function drawMenuDressing(){
     ctx.lineWidth=1.5;ctx.lineCap='round';
     // Tête
     ctx.beginPath();ctx.arc(cx2,cy2,5,0,Math.PI*2);ctx.fill();
-    // Yeux
-    ctx.fillStyle=c.eyes;ctx.beginPath();ctx.arc(cx2+1.6,cy2-0.8,1.2,0,Math.PI*2);ctx.fill();
     // Corps
     ctx.strokeStyle=bodyC;
     ctx.beginPath();ctx.moveTo(cx2,cy2+5);ctx.lineTo(cx2,cy2+14);ctx.stroke();
@@ -1810,7 +1804,7 @@ function drawMenuDressing(){
   const pv=PLAYER_COLORS[dressingCursor];
   const previewX=W/2, previewY=py+ph+20;
   ctx.font='10px monospace';ctx.fillStyle='#6a9a6a';ctx.textAlign='center';
-  ctx.fillText('Aperçu : '+pv.label+' — Espace/Z pour appliquer  •  ← → naviguer  •  Échap retour',W/2,previewY-6);
+  ctx.fillText('Preview: '+pv.label+' — Space/Z to apply  •  ← → browse  •  Esc back',W/2,previewY-6);
 
   // Gros bonhomme preview
   const bodyP=pv.body==='rainbow'?`hsl(${(performance.now()/8)%360},90%,55%)`:pv.body;
@@ -1828,17 +1822,17 @@ function drawLevelWon(){
   ctx.globalAlpha=1;
   ctx.textAlign='center';
   ctx.font='bold 30px monospace';ctx.fillStyle='#ffd700';
-  ctx.fillText('🌿 NIVEAU '+(currentLevelIdx+1)+' TERMINÉ !',W/2,H/2-50);
+  ctx.fillText('🌿 LEVEL '+(currentLevelIdx+1)+' COMPLETE!',W/2,H/2-50);
   ctx.font='14px monospace';ctx.fillStyle='#c8f0a8';
-  ctx.fillText('Temps niveau : '+elapsed.toFixed(2)+'s',W/2,H/2-16);
-  ctx.fillText('Temps total : '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2+10);
+  ctx.fillText('Level time: '+elapsed.toFixed(2)+'s',W/2,H/2-16);
+  ctx.fillText('Total time: '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2+10);
   const bt=bestTimes[currentLevelIdx];
-  if(bt!==null){ctx.fillStyle='#ffd700';ctx.fillText('Meilleur : '+bt.toFixed(2)+'s',W/2,H/2+36);}
+  if(bt!==null){ctx.fillStyle='#ffd700';ctx.fillText('Best: '+bt.toFixed(2)+'s',W/2,H/2+36);}
   ctx.font='13px monospace';ctx.fillStyle='#a8e0a8';
   const nextDef=LEVEL_DEFS[currentLevelIdx+1];
-  ctx.fillText(nextDef?'Prochain : '+nextDef.name:'Dernier niveau terminé !',W/2,H/2+58);
-  ctx.fillStyle='#a8a8a8';ctx.fillText('Morts : '+deaths,W/2,H/2+76);
-  if(Math.floor(performance.now()/500)%2){ctx.fillStyle='#78b85c';ctx.font='14px monospace';ctx.fillText('▶  Espace pour continuer',W/2,H/2+100);}
+  ctx.fillText(nextDef?'Next: '+nextDef.name:'Last level done!',W/2,H/2+58);
+  ctx.fillStyle='#a8a8a8';ctx.fillText('Deaths: '+deaths,W/2,H/2+76);
+  if(Math.floor(performance.now()/500)%2){ctx.fillStyle='#78b85c';ctx.font='14px monospace';ctx.fillText('▶  Space to continue',W/2,H/2+100);}
   ctx.textAlign='left';
 }
 
@@ -1851,11 +1845,11 @@ function drawWon(){
   });
   ctx.globalAlpha=1;
   ctx.textAlign='center';
-  ctx.font='bold 34px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🏆 TOUS LES NIVEAUX !',W/2,H/2-40);
+  ctx.font='bold 34px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🏆 ALL LEVELS COMPLETE!',W/2,H/2-40);
   ctx.font='15px monospace';ctx.fillStyle='#c8f0a8';
-  ctx.fillText('Temps total : '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2);
-  ctx.fillText('Morts total : '+deaths,W/2,H/2+24);
-  ctx.font='12px monospace';ctx.fillStyle='#789a78';ctx.fillText('R pour recommencer',W/2,H/2+60);
+  ctx.fillText('Total time: '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2);
+  ctx.fillText('Total deaths: '+deaths,W/2,H/2+24);
+  ctx.font='12px monospace';ctx.fillStyle='#789a78';ctx.fillText('R to restart',W/2,H/2+60);
   ctx.textAlign='left';
 }
 
