@@ -178,6 +178,164 @@ function sfxWin(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'s
 function sfxWallJump(){playTone(280,'square',0.1,0.08,220);}
 function sfxNextLevel(){[392,523,659].forEach((f,i)=>setTimeout(()=>playTone(f,'square',0.18,0.09),i*120));}
 
+// ── Ambient Music Engine ───────────────────────────────────────────
+let currentMusicTheme=null;
+let musicNodes=[];
+let musicScheduler=null;
+
+function stopThemeMusic(){
+  if(musicScheduler){clearInterval(musicScheduler);musicScheduler=null;}
+  musicNodes.forEach(n=>{try{n.stop&&n.stop();n.disconnect&&n.disconnect();}catch(e){}});
+  musicNodes=[];
+  currentMusicTheme=null;
+}
+
+function getMusicVol(){
+  if(typeof settings==='undefined')return 0.05;
+  return (settings.ambientVolume??0.5)*(settings.masterVolume??1)*0.065;
+}
+
+// Joue une note avec attaque douce et longue décroissance (pas de drone continu)
+// decay = durée totale en secondes
+function schedNote(freq,type,vol,when,decay,attack=0.04){
+  const a=getACtx();if(!a)return;
+  const o=a.createOscillator();
+  const g=a.createGain();
+  // Filtre passe-haut léger pour couper les sub-bass
+  const hp=a.createBiquadFilter();
+  hp.type='highpass';hp.frequency.value=200;
+  o.connect(hp);hp.connect(g);g.connect(a.destination);
+  o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(0,when);
+  g.gain.linearRampToValueAtTime(vol,when+attack);
+  g.gain.exponentialRampToValueAtTime(0.0001,when+decay);
+  o.start(when);o.stop(when+decay+0.05);
+  musicNodes.push(o,g,hp);
+  const delay=(when-a.currentTime+decay+0.3)*1000;
+  if(delay>0)setTimeout(()=>{
+    [o,g,hp].forEach(n=>{const i=musicNodes.indexOf(n);if(i>=0)musicNodes.splice(i,1);});
+  },delay);
+}
+
+// Crée un accord (plusieurs notes simultanées)
+function schedChord(freqs,type,vol,when,decay){
+  freqs.forEach((f,i)=>schedNote(f,type,vol*(1-i*0.15),when+i*0.03,decay));
+}
+
+function startThemeMusic(theme){
+  if(typeof settings==='undefined'||!settings.musicEnabled)return;
+  if(currentMusicTheme===theme)return;
+  stopThemeMusic();
+  const a=getACtx();if(!a)return;
+  currentMusicTheme=theme;
+
+  if(theme==='title'){
+    // Titre : arpège pentatonique La mineur, notes moyennes, décroissance longue et douce
+    // Pas de bass — toutes les notes au-dessus de 260 Hz
+    const scale=[440,523.3,659.3,784,880,784,659.3,523.3]; // La4 Do5 Mi5 Sol5 La5
+    let step=0;
+    musicScheduler=setInterval(()=>{
+      if(!settings.musicEnabled){stopThemeMusic();return;}
+      const now=a.currentTime;
+      const v=getMusicVol()*0.55;
+      schedNote(scale[step%scale.length],'sine',v,now,2.2);
+      // Toutes les 4 notes : une note harmonique douce en plus
+      if(step%4===0){
+        const harmony=scale[(step+2)%scale.length]*1.5;
+        schedNote(harmony,'sine',v*0.3,now+0.1,3.0);
+      }
+      step++;
+    },1200);
+  }
+  else if(theme==='prairie'){
+    // Prairie : mélodie enjouée Do majeur, notes claires et légères
+    // Séquence mélodique + accord toutes les 4 notes
+    const melody=[523.3,587.3,659.3,698.5,784,698.5,659.3,587.3]; // Do5 Ré5 Mi5 Fa5 Sol5…
+    const bass  =[523.3,493.9,440,523.3]; // contrechant grave (mais > 200Hz grâce au HP)
+    let step=0;
+    musicScheduler=setInterval(()=>{
+      if(!settings.musicEnabled){stopThemeMusic();return;}
+      const now=a.currentTime;
+      const v=getMusicVol();
+      schedNote(melody[step%melody.length],'triangle',v*0.6,now,1.1);
+      // Note de basse (filtrée > 200Hz, donc Do3/Si2 sonnent comme Do4 après HP)
+      if(step%2===0) schedNote(bass[(step/2)%bass.length],'sine',v*0.35,now,1.8,0.08);
+      // Petit accord joyeux toutes les 8 notes
+      if(step%8===0) schedChord([659.3,784,987.8],'sine',v*0.25,now+0.05,1.5);
+      step++;
+    },850);
+  }
+  else if(theme==='cavern'){
+    // Caverne : ambiance sombre SANS drone grave
+    // Principe : notes longues en La mineur harmonique, espacées, avec longue décroissance
+    // qui simule un écho naturel de grotte. Toutes fréquences > 200Hz.
+    // Gamme La min harmonique : La Si Do Ré Mi Fa Sol# La
+    // En 4e octave : 440 494 523 587 659 698 831 880
+    const darkScale=[440,493.9,523.3,587.3,659.3,698.5,830.6,880];
+    // Séquences mélodiques qui descendent comme une goutte dans le vide
+    const drops=[
+      [880, 659.3, 440],   // descente La5→Mi5→La4
+      [830.6, 587.3, 440], // Sol#5→Ré5→La4 (dissonant/mystérieux)
+      [659.3, 523.3],      // Mi5→Do5
+      [784, 659.3, 587.3], // Sol5→Mi5→Ré5
+    ];
+    // Pings cristallins espacés (simule écho de grotte)
+    const pings=[1046.5, 880, 987.8, 830.6]; // notes hautes cristallines
+    let step=0;
+    let dropIdx=0;
+    musicScheduler=setInterval(()=>{
+      if(!settings.musicEnabled){stopThemeMusic();return;}
+      const now=a.currentTime;
+      const v=getMusicVol();
+
+      // Toutes les ~5s : séquence de gouttes mélodiques descendantes
+      if(step%4===0){
+        const drop=drops[dropIdx%drops.length];
+        drop.forEach((f,i)=>{
+          // Longue décroissance → simule réverbération de grotte
+          schedNote(f,'sine',v*0.55,now+i*0.55,3.5-i*0.4,0.06);
+        });
+        dropIdx++;
+      }
+      // Ping cristallin occasionnel (aléatoire)
+      if(Math.random()<0.45){
+        const pf=pings[Math.floor(Math.random()*pings.length)];
+        schedNote(pf,'sine',v*0.3,now+Math.random()*0.8,2.8,0.02);
+      }
+      // Note sombre isolée très douce (harmonique mystérieux)
+      if(step%7===0){
+        const n=darkScale[Math.floor(Math.random()*darkScale.length)];
+        schedNote(n,'triangle',v*0.2,now+0.3,4.0,0.15);
+      }
+      step++;
+    },1300);
+  }
+  else if(theme==='dressing'){
+    // Dressing : petits accords joyeux et légers, gamme Do majeur
+    const chords=[
+      [523.3,659.3,784],   // Do Mi Sol (Do maj)
+      [493.9,587.3,740],   // Si Ré Fa# (Sol7 sans fondamentale)
+      [440,554.4,659.3],   // La Do# Mi (La maj)
+      [392,523.3,659.3],   // Sol Do Mi (Do/Sol)
+    ];
+    // Petite mélodie dessus
+    const topLine=[784,880,987.8,880,784,880,1046.5,987.8];
+    let step=0;
+    musicScheduler=setInterval(()=>{
+      if(!settings.musicEnabled){stopThemeMusic();return;}
+      const now=a.currentTime;
+      const v=getMusicVol();
+      // Accord en arpège rapide
+      const chord=chords[Math.floor(step/2)%chords.length];
+      chord.forEach((f,i)=>schedNote(f,'sine',v*0.38,now+i*0.06,1.4));
+      // Mélodie légère par-dessus
+      schedNote(topLine[step%topLine.length],'triangle',v*0.28,now+0.15,0.8,0.03);
+      step++;
+    },1400);
+  }
+}
+
+
 // ── RNG ───────────────────────────────────────────────────────────
 function mulberry32(a){
   let s=a;
@@ -641,6 +799,8 @@ function loadLevel(idx){
   const bt=bestTimes[idx]||null;
   document.getElementById('best').textContent=bt!==null?bt.toFixed(2):'--';
   updateThemeStyle();
+  // La musique est changée ici uniquement si le jeu est déjà en cours
+  if(state==='playing'&&currentMusicTheme!==currentTheme){startThemeMusic(currentTheme);}
 }
 
 function buildDeco(){
@@ -764,6 +924,7 @@ function spawnParticles(x,y,colors,n,vs=1){
 const keys={};
 let jumpPressed=false,dashPressed=false;
 window.addEventListener('keydown',e=>{
+  if(nameInputActive) return; // saisie du nom : bloquer tout le reste
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','KeyZ','KeyX','KeyR','KeyA','KeyD','KeyW','KeyS'].includes(e.code))e.preventDefault();
   // Échap : retour au menu titre depuis n'importe quel état de jeu
   if(e.code==='Escape'){
@@ -772,6 +933,7 @@ window.addEventListener('keydown',e=>{
       state='title';
       menuState='main';menuCursor=0;
       updateThemeStyle();
+      startThemeMusic('title');
       return;
     }
   }
@@ -792,7 +954,7 @@ window.addEventListener('keydown',e=>{
   }
   keys[e.code]=true;
 });
-window.addEventListener('keyup',e=>{keys[e.code]=false;});
+window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=false;});
 
 // ── Manette virtuelle (touch) ──────────────────────────────────────
 (function(){
@@ -884,6 +1046,7 @@ function startGame(){
   currentLevelIdx=0;
   totalTimeBeforeLevel=0;
   deaths=0;
+  lbSubmitStatus='';
   document.getElementById('deaths').textContent=0;
   loadLevel(0);
   initPlayer();
@@ -894,6 +1057,8 @@ function startGame(){
   currentRecording=[];
   ghostPlayback=null;ghostFrame=0;
   updateThemeStyle();
+  // Lancer la musique de jeu dès le PLAY
+  startThemeMusic(currentTheme);
 }
 
 function startGhostMode(lvlIdx){
@@ -920,17 +1085,24 @@ function startGhostMode(lvlIdx){
     ghostPlayback=null;ghostFrame=0;
   }
   updateThemeStyle();
+  startThemeMusic(currentTheme);
 }
 
 function respawn(){
-  // Recharge le niveau actuel en conservant le temps déjà écoulé sur ce niveau
-  const elapsedBeforeDeath=elapsed;
   state='playing';
   loadLevel(currentLevelIdx);
   initPlayer();
   particles=[];
-  startTime=performance.now()-elapsedBeforeDeath*1000;
   camera={x:0,y:0};
+  // En ghost mode : on repart de zéro (chaque run est chronométrée depuis le début)
+  // En mode normal : on conserve le temps écoulé (pénalité de mort)
+  if(ghostMode){
+    elapsed=0;
+    startTime=performance.now();
+  } else {
+    const elapsedBeforeDeath=elapsed;
+    startTime=performance.now()-elapsedBeforeDeath*1000;
+  }
   // Relancer la lecture du fantôme depuis le début
   if(ghostMode && currentLevelIdx===ghostLevelIdx && ghostRecordings[ghostLevelIdx]){
     ghostPlayback=ghostRecordings[ghostLevelIdx];
@@ -1129,20 +1301,25 @@ function update(){
     sfxWin();
     spawnParticles(player.x+4,player.y,'#ffd700',30,2);
     const prevBest=bestTimes[currentLevelIdx];
-    if(prevBest===null||elapsed<prevBest){
+    const isNewBest=(prevBest===null||elapsed<prevBest);
+    if(isNewBest){
       bestTimes[currentLevelIdx]=elapsed;
       document.getElementById('best').textContent=elapsed.toFixed(2);
-      // Sauvegarder l'enregistrement fantôme si c'est un nouveau record
-      if(ghostMode && currentLevelIdx===ghostLevelIdx){
-        ghostRecordings[currentLevelIdx]=[...currentRecording];
-      }
+    }
+    if(ghostMode && currentLevelIdx===ghostLevelIdx){
+      if(isNewBest) ghostRecordings[currentLevelIdx]=[...currentRecording];
+    }
+    // Soumettre au leaderboard si run complète et nom défini
+    if(isLast && playerName){
+      lbSubmitStatus='pending';
+      submitRunScore(totalTimeBeforeLevel+elapsed, deaths);
     }
     currentRecording=[];
   }
 
   // ── Enregistrement fantôme ───────────────────────────────────────
   if(ghostMode && state==='playing' && !player.dead){
-    currentRecording.push({x:player.x,y:player.y,facingRight:player.facingRight,dashing:player.dashing,vx:player.vx});
+    currentRecording.push({x:player.x,y:player.y,facingRight:player.facingRight,dashing:player.dashing,vx:player.vx,t:elapsed});
     // Avancer la lecture du fantôme
     if(ghostPlayback && ghostFrame<ghostPlayback.length) ghostFrame++;
   }
@@ -1545,11 +1722,13 @@ function drawGame(){
     ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(4,4,116,16);
     const hasGhost=ghostPlayback!==null;
     if(hasGhost){
-      const ghostT=(ghostFrame/60).toFixed(2);
-      const diff=elapsed-(ghostFrame/60);
+      // Utiliser le timestamp réel stocké dans la frame, pas ghostFrame/60
+      const currentGhostFrame=ghostPlayback[Math.min(ghostFrame,ghostPlayback.length-1)];
+      const ghostT=currentGhostFrame?currentGhostFrame.t:ghostFrame/60;
+      const diff=elapsed-ghostT;
       const sign=diff>=0?'+':'-';
       ctx.fillStyle='#aaddff';ctx.textAlign='left';
-      ctx.fillText('👻 '+ghostT+'s',6,16);
+      ctx.fillText('👻 '+ghostT.toFixed(2)+'s',6,16);
       ctx.fillStyle=diff>0?'#ff6b6b':'#7ed957';
       ctx.fillText(sign+Math.abs(diff).toFixed(2)+'s',76,16);
     } else {
@@ -1566,8 +1745,10 @@ function drawGame(){
 
 // Settings state
 const settings = {
-  sfxVolume: 1.0,      // 0..1
+  sfxVolume: 0.6,      // 0..1
   masterVolume: 1.0,   // 0..1
+  ambientVolume: 0.7,  // 0..1  (volume son ambiance)
+  musicEnabled: true,
   playerColor: '#111111',
   playerSecondary: '#ff9f43',
   playerEyes: '#ffffff',
@@ -1602,7 +1783,7 @@ let dressingCursor = 0;
 let selectedColorIdx = 0;
 let ghostMenuCursor = 0;
 
-const MAIN_ITEMS = ['▶  PLAY', '👻  GHOST MODE', '⚙  SETTINGS', '🎮  CONTROLS', '👕  DRESSING'];
+const MAIN_ITEMS = ['▶  PLAY', '👻  GHOST MODE', '🏆  LEADERBOARD', '⚙  SETTINGS', '🎮  CONTROLS', '👕  DRESSING'];
 
 function keyLabel(code) {
   const map = {
@@ -1616,8 +1797,7 @@ function keyLabel(code) {
 
 function menuKeydown(e) {
   if(state !== 'title') return;
-
-  // Rebinding mode
+  if(handleNameInput(e)) return;
   if(rebindTarget) {
     if(e.code === 'Escape') { rebindTarget = null; return; }
     // avoid assigning keys already used for menu nav
@@ -1635,12 +1815,22 @@ function menuKeydown(e) {
     if(e.code==='ArrowUp')   { menuCursor=(menuCursor-1+MAIN_ITEMS.length)%MAIN_ITEMS.length; }
     if(e.code==='ArrowDown') { menuCursor=(menuCursor+1)%MAIN_ITEMS.length; }
     if(e.code==='Space'||e.code==='KeyZ'||e.code==='Enter') {
-      if(menuCursor===0) { startGame(); return; }
-      if(menuCursor===1) { menuState='ghost'; ghostMenuCursor=0; }
-      if(menuCursor===2) { menuState='settings'; menuCursor=0; }
-      if(menuCursor===3) { menuState='keys'; menuCursor=0; }
-      if(menuCursor===4) { menuState='dressing'; dressingCursor=selectedColorIdx; }
+      if(menuCursor===0) {
+        if(!playerName){ openNameInput(()=>startGame()); return; }
+        startGame(); return;
+      }
+      if(menuCursor===1) {
+        if(!playerName){ openNameInput(()=>{ menuState='ghost'; ghostMenuCursor=0; }); return; }
+        menuState='ghost'; ghostMenuCursor=0;
+      }
+      if(menuCursor===2) { menuState='leaderboard'; lbLoad(); }
+      if(menuCursor===3) { menuState='settings'; menuCursor=0; }
+      if(menuCursor===4) { menuState='keys'; menuCursor=0; }
+      if(menuCursor===5) { menuState='dressing'; dressingCursor=selectedColorIdx; startThemeMusic('dressing'); }
     }
+  } else if(menuState==='leaderboard') {
+    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=2; }
+    if(e.code==='Enter'||e.code==='KeyZ') { openNameInput(()=>lbLoad()); }
   } else if(menuState==='ghost') {
     if(e.code==='ArrowUp')   { ghostMenuCursor=(ghostMenuCursor-1+LEVEL_DEFS.length)%LEVEL_DEFS.length; }
     if(e.code==='ArrowDown') { ghostMenuCursor=(ghostMenuCursor+1)%LEVEL_DEFS.length; }
@@ -1649,18 +1839,34 @@ function menuKeydown(e) {
     }
     if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=1; }
   } else if(menuState==='settings') {
-    const items=['sfxVolume','masterVolume'];
+    const items=['sfxVolume','ambientVolume','masterVolume','musicEnabled'];
     if(e.code==='ArrowUp')    { menuCursor=(menuCursor-1+items.length)%items.length; }
     if(e.code==='ArrowDown')  { menuCursor=(menuCursor+1)%items.length; }
-    if(e.code==='ArrowRight') { settings[items[menuCursor]]=Math.min(1,+(settings[items[menuCursor]]+0.1).toFixed(1)); }
-    if(e.code==='ArrowLeft')  { settings[items[menuCursor]]=Math.max(0,+(settings[items[menuCursor]]-0.1).toFixed(1)); }
-    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=1; }
+    if(items[menuCursor]==='musicEnabled'){
+      if(e.code==='ArrowLeft' || e.code==='ArrowRight'){
+        settings.musicEnabled=!settings.musicEnabled;
+        if(settings.musicEnabled) startThemeMusic(currentMusicTheme||currentTheme||'title'); else stopThemeMusic();
+      }
+    }else{
+      if(e.code==='ArrowRight') { settings[items[menuCursor]]=Math.min(1,+(settings[items[menuCursor]]+0.1).toFixed(1));
+        // Mise à jour volume en temps réel
+        if(items[menuCursor]==='ambientVolume'||items[menuCursor]==='masterVolume'){
+          musicNodes.forEach(n=>{if(n instanceof GainNode){try{n.gain.setTargetAtTime(getMusicVol(),getACtx().currentTime,0.1);}catch(e){}}});
+        }
+      }
+      if(e.code==='ArrowLeft')  { settings[items[menuCursor]]=Math.max(0,+(settings[items[menuCursor]]-0.1).toFixed(1));
+        if(items[menuCursor]==='ambientVolume'||items[menuCursor]==='masterVolume'){
+          musicNodes.forEach(n=>{if(n instanceof GainNode){try{n.gain.setTargetAtTime(getMusicVol(),getACtx().currentTime,0.1);}catch(e){}}});
+        }
+      }
+    }
+    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=3; }
   } else if(menuState==='keys') {
     const kItems=Object.keys(settings.keys);
     if(e.code==='ArrowUp')   { menuCursor=(menuCursor-1+kItems.length)%kItems.length; }
     if(e.code==='ArrowDown') { menuCursor=(menuCursor+1)%kItems.length; }
     if(e.code==='Space'||e.code==='KeyZ'||e.code==='Enter') { rebindTarget=kItems[menuCursor]; }
-    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=2; }
+    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=4; }
   } else if(menuState==='dressing') {
     if(e.code==='ArrowLeft')  { dressingCursor=(dressingCursor-1+PLAYER_COLORS.length)%PLAYER_COLORS.length; }
     if(e.code==='ArrowRight') { dressingCursor=(dressingCursor+1)%PLAYER_COLORS.length; }
@@ -1668,7 +1874,7 @@ function menuKeydown(e) {
       selectedColorIdx=dressingCursor;
       applyPlayerColor(selectedColorIdx);
     }
-    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=3; }
+    if(e.code==='Escape'||e.code==='Backspace') { menuState='main'; menuCursor=5; startThemeMusic('title'); }
   }
 }
 
@@ -1732,14 +1938,216 @@ function drawStickFigureMenu(px,py,facing,moving,bodyColor,dashColor,eyeColor){
 }
 
 // ── Écrans ────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// ── SUPABASE LEADERBOARD ──────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+const SB_URL  = 'https://gffrgkzjucoiugbxdssh.supabase.co';
+const SB_KEY  = 'sb_publishable_ofKdHjV0GN-82c6jnrm9yA_39CA2Hvq';
+const SB_HEAD = { 'Content-Type':'application/json', 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY };
+
+let playerName      = localStorage.getItem('dashr_name') || '';
+let nameInputActive = false;
+let nameInputValue  = '';
+let lbData          = [];   // [{player_name, total_time, deaths}]
+let lbStatus        = '';   // '' | 'loading' | 'ok' | 'error' | 'submitting'
+
+async function lbLoad(){
+  lbStatus = 'loading'; lbData = [];
+  try{
+    const r = await fetch(SB_URL+'/rest/v1/leaderboard?select=player_name,total_time,deaths&order=total_time.asc&limit=15', {headers:SB_HEAD});
+    if(!r.ok) throw new Error(r.status);
+    lbData = await r.json();
+    lbStatus = 'ok';
+  } catch(e){ lbStatus = 'error'; }
+}
+
+async function lbSubmit(totalTime, deathCount){
+  if(!playerName) return;
+  lbStatus = 'submitting';
+  const newTime = parseFloat(totalTime.toFixed(3));
+  console.log('[LB] Tentative soumission:', playerName, newTime, 'morts:', deathCount);
+  try{
+    // Vérifier si le joueur a déjà un score
+    const check = await fetch(
+      SB_URL+'/rest/v1/leaderboard?select=total_time&player_name=eq.'+encodeURIComponent(playerName),
+      {headers:SB_HEAD}
+    );
+    if(!check.ok) throw new Error('check failed: '+check.status);
+    const existing = await check.json();
+    console.log('[LB] Score existant:', existing);
+
+    const existingTime = existing.length > 0 ? parseFloat(existing[0].total_time) : null;
+    const shouldSubmit = existingTime === null || newTime < existingTime;
+    console.log('[LB] existingTime:', existingTime, '| newTime:', newTime, '| shouldSubmit:', shouldSubmit);
+
+    if(shouldSubmit){
+      const body = JSON.stringify({player_name:playerName, total_time:newTime, deaths:deathCount});
+      const r = await fetch(SB_URL+'/rest/v1/leaderboard?on_conflict=player_name', {
+        method:'POST',
+        headers:{...SB_HEAD, 'Prefer':'resolution=merge-duplicates'},
+        body
+      });
+      const responseText = await r.text();
+      console.log('[LB] Réponse upsert:', r.status, responseText);
+      if(!r.ok) throw new Error('upsert failed: '+r.status+' '+responseText);
+    } else {
+      console.log('[LB] Temps non soumis — score existant meilleur');
+    }
+    await lbLoad();
+    lbStatus = 'ok';
+  } catch(e){
+    console.error('[LB] Erreur:', e);
+    lbStatus = 'error';
+  }
+}
+
+let lbSubmitStatus = ''; // '' | 'pending' | 'ok' | 'error'
+async function submitRunScore(totalTime, deathCount){
+  lbSubmitStatus = 'pending';
+  try {
+    await lbSubmit(totalTime, deathCount);
+    lbSubmitStatus = 'ok';
+  } catch(e){ lbSubmitStatus = 'error'; }
+}
+
+// ── Dessin menu leaderboard ───────────────────────────────────────
+function drawMenuLeaderboard(){
+  ctx.textAlign='center';
+  ctx.font='bold 16px monospace'; ctx.fillStyle='#96d46e';
+  ctx.fillText('🏆 LEADERBOARD — FULL RUN', W/2, 48);
+  ctx.font='10px monospace'; ctx.fillStyle='#4a7a4a';
+  ctx.fillText('Meilleur temps sur les '+LEVEL_DEFS.length+' niveaux d\'affilée', W/2, 64);
+
+  const pw=400, ph=290, px=W/2-200, py=76;
+  drawMenuPanel(px, py, pw, ph);
+
+  if(lbStatus==='loading'){
+    ctx.font='11px monospace'; ctx.fillStyle='#5a8a5a'; ctx.textAlign='center';
+    ctx.fillText('Chargement…', W/2, py+ph/2);
+  } else if(lbStatus==='error'){
+    ctx.font='11px monospace'; ctx.fillStyle='#e94560'; ctx.textAlign='center';
+    ctx.fillText('Erreur de connexion', W/2, py+ph/2);
+  } else if(lbData.length===0){
+    ctx.font='11px monospace'; ctx.fillStyle='#5a8a5a'; ctx.textAlign='center';
+    ctx.fillText('Aucun score — sois le premier !', W/2, py+ph/2-8);
+    ctx.font='10px monospace'; ctx.fillStyle='#3a5a3a';
+    ctx.fillText('Termine tous les niveaux pour apparaître ici', W/2, py+ph/2+14);
+  } else {
+    ctx.font='bold 10px monospace'; ctx.fillStyle='#6a9a6a'; ctx.textAlign='left';
+    ctx.fillText('#', px+14, py+20);
+    ctx.fillText('Joueur', px+38, py+20);
+    ctx.textAlign='right';
+    ctx.fillText('Temps', px+pw-60, py+20);
+    ctx.fillText('Morts', px+pw-14, py+20);
+    ctx.strokeStyle='rgba(120,180,80,0.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(px+10,py+26); ctx.lineTo(px+pw-10,py+26); ctx.stroke();
+
+    lbData.forEach((e,i)=>{
+      const iy=py+42+i*17;
+      const isMe=e.player_name===playerName;
+      const isFirst=i===0;
+      if(isFirst){ctx.fillStyle='rgba(255,215,0,0.08)';ctx.fillRect(px+8,iy-12,pw-16,16);}
+      else if(isMe){ctx.fillStyle='rgba(120,200,80,0.12)';ctx.fillRect(px+8,iy-12,pw-16,16);}
+
+      ctx.font=(isFirst?'bold ':'')+' 10px monospace';
+      ctx.fillStyle=isFirst?'#ffd700':isMe?'#a0e050':'#6a9a6a';
+      ctx.textAlign='left';
+      ctx.fillText(i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.', px+10, iy);
+      ctx.fillStyle=isFirst?'#ffd700':isMe?'#c8f0a8':'#8aaa8a';
+      ctx.fillText(e.player_name+(isMe?' ★':''), px+38, iy);
+      ctx.textAlign='right';
+      ctx.fillStyle=isFirst?'#ffd700':isMe?'#a0e050':'#6a9a6a';
+      ctx.fillText(parseFloat(e.total_time).toFixed(3)+'s', px+pw-60, iy);
+      ctx.fillStyle='#5a7a5a';
+      ctx.fillText('💀'+e.deaths, px+pw-14, iy);
+    });
+  }
+
+  // Nom du joueur
+  ctx.font='10px monospace'; ctx.fillStyle='#3a5a3a'; ctx.textAlign='center';
+  if(playerName){
+    ctx.fillText('Connecté en tant que : '+playerName+' — Z pour changer', W/2, py+ph+16);
+  } else {
+    ctx.fillStyle='#e94560';
+    ctx.fillText('⚠ Pas de nom — appuie sur Z pour en définir un', W/2, py+ph+16);
+  }
+  ctx.fillStyle='#3a5a3a';
+  ctx.fillText('Échap pour revenir', W/2, py+ph+30);
+
+  // Saisie du nom
+  if(nameInputActive) drawNameInput();
+}
+
+// ── Saisie du nom (overlay) ───────────────────────────────────────
+function drawNameInput(){
+  ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';
+  ctx.font='bold 14px monospace'; ctx.fillStyle='#96d46e';
+  ctx.fillText('Entrer ton pseudo', W/2, H/2-40);
+
+  const bw=260, bh=34, bx=W/2-bw/2, by=H/2-20;
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle='#78d450'; ctx.lineWidth=2; ctx.strokeRect(bx,by,bw,bh);
+
+  const display=nameInputValue+(Math.floor(performance.now()/500)%2?'▌':'');
+  ctx.font='bold 16px monospace'; ctx.fillStyle='#c8f0a8';
+  ctx.fillText(display||' ', W/2, by+23);
+
+  ctx.font='10px monospace'; ctx.fillStyle='#3a6a3a';
+  ctx.fillText('Entrée pour confirmer  •  max 16 caractères', W/2, H/2+24);
+  if(nameInputValue.trim().length===0){
+    ctx.fillStyle='rgba(233,69,96,0.7)';
+    ctx.fillText('Le nom ne peut pas être vide', W/2, H/2+42);
+  }
+}
+
+let nameInputCallback = null; // fonction appelée après confirmation du nom
+
+function openNameInput(onConfirm){
+  nameInputActive  = true;
+  nameInputValue   = playerName || '';
+  nameInputCallback = onConfirm || null;
+}
+
+function handleNameInput(e){
+  if(!nameInputActive) return false;
+  e.preventDefault();
+  if(e.code==='Escape'){
+    nameInputActive=false;
+    nameInputValue=playerName||'';
+    nameInputCallback=null;
+    Object.keys(keys).forEach(k=>keys[k]=false);
+    return true;
+  }
+  if(e.code==='Enter'||e.code==='NumpadEnter'){
+    if(nameInputValue.trim().length>0){
+      playerName=nameInputValue.trim().slice(0,16);
+      localStorage.setItem('dashr_name', playerName);
+      nameInputActive=false;
+      Object.keys(keys).forEach(k=>keys[k]=false);
+      const cb=nameInputCallback; nameInputCallback=null;
+      if(cb) cb();
+      else if(menuState==='leaderboard') lbLoad();
+    }
+    return true;
+  }
+  if(e.code==='Backspace'){ nameInputValue=nameInputValue.slice(0,-1); return true; }
+  if(e.key.length===1 && /[\w\- ]/.test(e.key) && nameInputValue.length<16){
+    nameInputValue+=e.key;
+  }
+  return true;
+}
+
 function drawTitle(){
   drawBackground();
-
-  if(menuState==='main')       drawMenuMain();
-  else if(menuState==='ghost') drawMenuGhost();
-  else if(menuState==='settings') drawMenuSettings();
-  else if(menuState==='keys')  drawMenuKeys();
-  else if(menuState==='dressing') drawMenuDressing();
+  if(menuState==='main')            drawMenuMain();
+  else if(menuState==='leaderboard')drawMenuLeaderboard();
+  else if(menuState==='ghost')      drawMenuGhost();
+  else if(menuState==='settings')   drawMenuSettings();
+  else if(menuState==='keys')       drawMenuKeys();
+  else if(menuState==='dressing')   drawMenuDressing();
+  // Overlay saisie du nom : affiché par-dessus n'importe quel écran (sauf leaderboard qui le gère lui-même)
+  if(nameInputActive && menuState!=='leaderboard') drawNameInput();
 }
 
 function drawMenuMain(){
@@ -1790,29 +2198,44 @@ function drawMenuSettings(){
   ctx.font='bold 16px monospace';ctx.fillStyle='#96d46e';
   ctx.fillText('⚙ AUDIO SETTINGS',W/2,55);
 
-  const pw=300,ph=160;
-  const px=W/2-pw/2,py=72;
+  const pw=320,ph=220;
+  const px=W/2-pw/2,py=68;
   drawMenuPanel(px,py,pw,ph);
 
   const items=[
-    {key:'sfxVolume',    label:'Sound Effects'},
-    {key:'masterVolume', label:'Master Volume'},
+    {key:'sfxVolume',     label:'Sound Effects'},
+    {key:'ambientVolume', label:'Ambient Music'},
+    {key:'masterVolume',  label:'Master Volume'},
+    {key:'musicEnabled',  label:'Music On/Off'},
   ];
   items.forEach(({key,label},i)=>{
-    const iy=py+40+i*56;
+    const iy=py+36+i*46;
     const active=menuCursor===i;
     ctx.font=(active?'bold ':'')+'11px monospace';
     ctx.fillStyle=active?'#c8f0a8':'#6a9a6a';
-    ctx.textAlign='left';ctx.fillText(label,px+18,iy-8);
-    drawVolumeBar(px+18,iy,pw-60,12,settings[key],active);
-    if(active){
-      ctx.fillStyle='#78d450';ctx.font='14px monospace';ctx.textAlign='left';
-      ctx.fillText('◀',px+18-14,iy+10);ctx.textAlign='right';
-      ctx.fillText('▶',px+pw-42+8,iy+10);
+    ctx.textAlign='left';ctx.fillText(label,px+18,iy-6);
+    if(key==='musicEnabled'){
+      // Toggle ON/OFF
+      const onStr=settings.musicEnabled?'◉ ON':'○ OFF';
+      ctx.fillStyle=active?(settings.musicEnabled?'#78d450':'#e94560'):'#556655';
+      ctx.font=(active?'bold ':'')+'13px monospace';
+      ctx.textAlign='center';
+      ctx.fillText(onStr,px+pw/2,iy+8);
+      if(active){
+        ctx.fillStyle='#78d450';ctx.font='14px monospace';
+        ctx.fillText('◀',px+18-14,iy+8);ctx.textAlign='right';
+        ctx.fillText('▶',px+pw-14,iy+8);
+      }
+    } else {
+      drawVolumeBar(px+18,iy,pw-60,12,settings[key],active);
+      if(active){
+        ctx.fillStyle='#78d450';ctx.font='14px monospace';ctx.textAlign='left';
+        ctx.fillText('◀',px+18-14,iy+10);ctx.textAlign='right';
+        ctx.fillText('▶',px+pw-42+8,iy+10);
+      }
     }
   });
 
-  // Test son
   ctx.font='10px monospace';ctx.fillStyle='#3a6a3a';ctx.textAlign='center';
   ctx.fillText('← → adjust  •  Esc back',W/2,py+ph+16);
 }
@@ -2034,11 +2457,36 @@ function drawWon(){
   });
   ctx.globalAlpha=1;
   ctx.textAlign='center';
-  ctx.font='bold 34px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🏆 ALL LEVELS COMPLETE!',W/2,H/2-40);
+  ctx.font='bold 34px monospace';ctx.fillStyle='#ffd700';ctx.fillText('🏆 ALL LEVELS COMPLETE!',W/2,H/2-50);
   ctx.font='15px monospace';ctx.fillStyle='#c8f0a8';
-  ctx.fillText('Total time: '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2);
-  ctx.fillText('Total deaths: '+deaths,W/2,H/2+24);
-  ctx.font='12px monospace';ctx.fillStyle='#789a78';ctx.fillText('R to restart',W/2,H/2+60);
+  ctx.fillText('Temps total : '+(totalTimeBeforeLevel+elapsed).toFixed(2)+'s',W/2,H/2-16);
+  ctx.fillText('Morts : '+deaths,W/2,H/2+8);
+
+  // Statut soumission leaderboard
+  if(!playerName){
+    ctx.font='11px monospace';ctx.fillStyle='#e9a030';
+    ctx.fillText('⚠ Pas de nom — score non soumis',W/2,H/2+32);
+    ctx.font='10px monospace';ctx.fillStyle='#5a8a5a';
+    ctx.fillText('Va dans 🏆 Leaderboard pour définir un nom',W/2,H/2+50);
+  } else if(lbSubmitStatus==='pending'){
+    ctx.font='11px monospace';ctx.fillStyle='#aaaaaa';
+    ctx.fillText('⏳ Envoi du score…',W/2,H/2+32);
+  } else if(lbSubmitStatus==='error'){
+    ctx.font='11px monospace';ctx.fillStyle='#e94560';
+    ctx.fillText('⚠ Échec de l\'envoi',W/2,H/2+32);
+  } else if(lbSubmitStatus==='ok'){
+    const myIdx=lbData.findIndex(e=>e.player_name===playerName);
+    if(myIdx>=0){
+      const rankStr=myIdx===0?'🥇 #1':myIdx===1?'🥈 #2':myIdx===2?'🥉 #3':'#'+(myIdx+1);
+      ctx.font='bold 13px monospace';ctx.fillStyle='#ffd700';
+      ctx.fillText('Classement : '+rankStr+' / '+lbData.length,W/2,H/2+32);
+    } else {
+      ctx.font='11px monospace';ctx.fillStyle='#7ed957';
+      ctx.fillText('✓ Score soumis !',W/2,H/2+32);
+    }
+  }
+
+  ctx.font='12px monospace';ctx.fillStyle='#789a78';ctx.fillText('R pour recommencer  •  Échap menu',W/2,H/2+64);
   ctx.textAlign='left';
 }
 
@@ -2058,6 +2506,15 @@ function loop(ts){
 // Init
 loadLevel(0);
 state='title';
+// Lancer la musique titre dès l'ouverture (déclenchée sur 1er interaction utilisateur)
+window.addEventListener('keydown',function _firstKey(){
+  startThemeMusic('title');
+  window.removeEventListener('keydown',_firstKey,true);
+},true);
+window.addEventListener('touchstart',function _firstTouch(){
+  startThemeMusic('title');
+  window.removeEventListener('touchstart',_firstTouch);
+},{once:true});
 requestAnimationFrame(loop);
 </script>
 </body>
