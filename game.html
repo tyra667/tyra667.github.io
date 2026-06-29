@@ -131,6 +131,7 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;curso
       <div id="btn-jump" class="btn" style="position:absolute;bottom:0;right:0;">⬆</div>
       <div id="btn-dash" class="btn" style="position:absolute;bottom:0;right:70px;">✦</div>
       <div id="btn-restart" class="btn" style="position:absolute;top:0;right:0;width:36px;height:36px;font-size:10px;">↺</div>
+      <div id="btn-menu" class="btn" style="position:absolute;top:0;left:0;width:36px;height:36px;font-size:9px;background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">☰</div>
     </div>
   </div>
 </div>
@@ -141,17 +142,21 @@ const BASE_W=640,BASE_H=420;
 let W=BASE_W,H=BASE_H,SCALE=1;
 function resize(){
   const isMobile=window.matchMedia('(pointer:coarse)').matches;
-  const padH=isMobile?140:0;
+  const padH=isMobile?150:0;
   const hudH=document.getElementById('hud').offsetHeight||32;
+  // visualViewport évite les barres d'adresse mobiles qui faussent innerHeight
+  const vvh=(window.visualViewport?window.visualViewport.height:window.innerHeight);
   const availW=window.innerWidth;
-  const availH=window.innerHeight-hudH-padH-8;
+  const availH=vvh-hudH-padH-4;
   const sw=availW/BASE_W,sh=availH/BASE_H;
   SCALE=Math.min(sw,sh);W=BASE_W;H=BASE_H;
   C.width=BASE_W;C.height=BASE_H;
   C.style.width=Math.round(BASE_W*SCALE)+'px';
   C.style.height=Math.round(BASE_H*SCALE)+'px';
 }
-resize();window.addEventListener('resize',resize);
+resize();
+window.addEventListener('resize',resize);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);
 const T=16;
 
 // ── Audio ──────────────────────────────────────────────────────────
@@ -1520,6 +1525,81 @@ window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=fa
     if(state==='playing'||state==='dead'||state==='won'||state==='levelwon'){
       if(ghostMode) startGhostMode(ghostLevelIdx);
       else startGame();
+    }
+  },{passive:false});
+
+  // Bouton MENU (Échap mobile)
+  const btnMenu=document.getElementById('btn-menu');
+  btnMenu.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(state==='title') return;
+    // Simuler Escape : retour au menu titre
+    state='title';
+    menuState='main';menuCursor=0;
+    startThemeMusic('title');
+  },{passive:false});
+
+  // Navigation tactile du menu : tap sur le canvas
+  C.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(state!=='title') return;
+    const t=e.changedTouches[0];
+    const rect=C.getBoundingClientRect();
+    // Convertir coords écran → coords canvas interne
+    const cx=(t.clientX-rect.left)/SCALE;
+    const cy=(t.clientY-rect.top)/SCALE;
+
+    if(menuState==='main'){
+      const pw=220, ph=MAIN_ITEMS.length*38+28;
+      const px=W/2-pw/2, py=H/2-ph/2+20;
+      MAIN_ITEMS.forEach((item,i)=>{
+        const iy=py+24+i*38;
+        if(cx>=px && cx<=px+pw && cy>=iy-18 && cy<=iy+14){
+          menuCursor=i;
+          // Confirmer immédiatement
+          if(i===0){startGame();}
+          else if(i===1){if(!playerName){openNameInput(()=>{menuState='ghost';ghostMenuCursor=0;});}else{menuState='ghost';ghostMenuCursor=0;}}
+          else if(i===2){menuState='leaderboard';lbLoad();}
+          else if(i===3){menuState='settings';menuCursor=0;}
+          else if(i===4){menuState='keys';menuCursor=0;}
+          else if(i===5){menuState='dressing';dressingCursor=selectedColorIdx;startThemeMusic('dressing');}
+        }
+      });
+    } else if(menuState==='leaderboard'||menuState==='ghost'){
+      // Tap n'importe où pour revenir
+      const bx=W/2-40,by=H-50;
+      if(cx>=bx-20&&cx<=bx+80&&cy>=by-16&&cy<=by+20){
+        menuState='main';menuCursor=menuState==='leaderboard'?2:1;
+      }
+      // Aussi accepter un tap en dehors du panel central
+      if(cx<W*0.1||cx>W*0.9||cy<H*0.1){menuState='main';}
+    } else if(menuState==='settings'){
+      // Tap sur les items settings
+      const pw=320,ph=220,px=W/2-pw/2,py=68;
+      const sItems=['sfxVolume','ambientVolume','masterVolume','musicEnabled'];
+      sItems.forEach((key,i)=>{
+        const iy=py+36+i*46;
+        if(cy>=iy-20&&cy<=iy+26){
+          menuCursor=i;
+          if(key==='musicEnabled'){
+            settings.musicEnabled=!settings.musicEnabled;
+            if(settings.musicEnabled)startThemeMusic(currentMusicTheme||'title');else stopThemeMusic();
+          } else {
+            // Tap gauche/droite du panel
+            if(cx<W/2) settings[key]=Math.max(0,+(settings[key]-0.1).toFixed(1));
+            else settings[key]=Math.min(1,+(settings[key]+0.1).toFixed(1));
+            if(key==='ambientVolume'||key==='masterVolume'){updateAmbientVolume&&updateAmbientVolume();}
+          }
+        }
+      });
+      // Retour si tap hors panel
+      if(cx<px||cx>px+pw||cy<py||cy>py+ph+20){menuState='main';menuCursor=3;}
+    } else if(menuState==='dressing'){
+      // Retour
+      if(cy>H-50){menuState='main';menuCursor=5;startThemeMusic('title');}
+    } else if(menuState==='keys'){
+      // Retour
+      if(cy>H-50){menuState='main';menuCursor=4;}
     }
   },{passive:false});
 })();
