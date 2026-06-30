@@ -96,29 +96,7 @@ html.is-touch #pad{display:block;}
 html.is-touch #ctrl{display:none;}
 html.is-touch #hud{font-size:11px;}
 html.is-touch,html.is-touch body{height:100%;overflow:hidden;}
-/* Landscape mobile : pad sur les côtés, HUD minuscule */
-@media(orientation:landscape){
-html.is-touch #hud{font-size:9px;padding:2px 0;}
-html.is-touch #hud span{padding:1px 6px;}
-html.is-touch #pad{
-    height:100%;width:100%;
-    pointer-events:none;
-}
-  /* Joystick à gauche, boutons à droite — sur toute la hauteur */
-html.is-touch #stick-zone{
-    left:8px;bottom:auto;top:50%;transform:translateY(-50%);
-    width:100px;height:100px;
-}
-html.is-touch #stick-bg{width:100px;height:100px;}
-html.is-touch #stick-knob{width:36px;height:36px;top:32px;left:32px;}
-html.is-touch #btns{
-    right:8px;bottom:auto;top:50%;transform:translateY(-50%);
-    flex-direction:column;gap:6px;
-}
-  /* Laisser de la place sur les côtés pour le pad */
-html.is-touch #gc{flex-direction:row;flex-wrap:wrap;}
-html.is-touch #canvas-wrap{flex:1;}
-}
+/* Landscape mobile : on garde la même disposition qu'en portrait (pad en bas, plein écran) */
 </style>
 </head>
 <body>
@@ -212,22 +190,13 @@ const BASE_W=640,BASE_H=420;
 let W=BASE_W,H=BASE_H,SCALE=1;
 function resize(){
   const isMobile=document.documentElement.classList.contains('is-touch');
-  const isLandscape=window.innerWidth>window.innerHeight;
   const hudH=document.getElementById('hud').offsetHeight||32;
   const vvh=(window.visualViewport?window.visualViewport.height:window.innerHeight);
   const vvw=(window.visualViewport?window.visualViewport.width:window.innerWidth);
-  let availW,availH;
-  if(isMobile && isLandscape){
-    // En paysage : pad sur les côtés (120px chacun), toute la hauteur moins HUD
-    const padSide=120;
-    availW=vvw-padSide*2;
-    availH=vvh-hudH-4;
-  } else {
-    // Portrait ou desktop : pad en bas
-    const padH=isMobile?150:0;
-    availW=vvw;
-    availH=vvh-hudH-padH-4;
-  }
+  // Même disposition en portrait et en paysage : pad en bas, jeu plein largeur
+  const padH=isMobile?150:0;
+  const availW=vvw;
+  const availH=vvh-hudH-padH-4;
   const sw=availW/BASE_W,sh=availH/BASE_H;
   SCALE=Math.min(sw,sh);W=BASE_W;H=BASE_H;
   C.width=BASE_W;C.height=BASE_H;
