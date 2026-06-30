@@ -13,21 +13,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0f1f0f;touch-action
   background:#0f1f0f;
 }
 #hud{
-  display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;padding:5px 8px 4px;
+  display:flex;gap:8px;padding:6px 0 4px;
   font-family:'Courier New',monospace;font-size:12px;color:#e0e0e0;align-items:center;
-  justify-content:center;
-  flex-shrink:0;width:100%;box-sizing:border-box;
+  flex-shrink:0;
 }
-#hud span{background:rgba(0,0,0,0.45);padding:2px 8px;border-radius:20px;border:1px solid rgba(255,255,255,0.12);white-space:nowrap;}
-#canvas-wrap{
-  flex:1;display:flex;align-items:flex-start;justify-content:center;width:100%;overflow:hidden;
-  position:relative;
-}
+#hud span{background:rgba(0,0,0,0.45);padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.12);}
+#canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;overflow:hidden;}
 canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;cursor:none;}
 
 /* ── Manette tactile ── */
 #pad{
-  position:absolute;bottom:0;left:0;width:100%;
+  position:fixed;bottom:0;left:0;width:100%;
   height:140px;
   display:none; /* affiché uniquement sur mobile */
   pointer-events:none;
@@ -99,8 +95,7 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;curso
 @media(pointer:coarse){
   #pad{display:block;}
   #ctrl{display:none;}
-  #hud{font-size:10px;gap:4px;padding:4px 6px 3px;}
-  #hud span{padding:1px 6px;}
+  #hud{font-size:11px;}
   html,body{height:100%;overflow:hidden;}
 }
 /* Landscape mobile : pad sur les côtés, HUD minuscule */
@@ -129,6 +124,20 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;curso
 </style>
 </head>
 <body>
+<div id="debug-err" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#a00;color:#fff;font-family:monospace;font-size:11px;padding:6px;display:none;white-space:pre-wrap;max-height:40vh;overflow:auto;"></div>
+<div id="debug-hb" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#000;color:#0f0;font-family:monospace;font-size:9px;padding:4px;white-space:pre-wrap;"></div>
+<script>
+window.addEventListener('error', function(e){
+  var box = document.getElementById('debug-err');
+  box.style.display='block';
+  box.textContent += '[ERROR] '+e.message+' @ '+e.filename+':'+e.lineno+':'+e.colno+'\n';
+});
+window.addEventListener('unhandledrejection', function(e){
+  var box = document.getElementById('debug-err');
+  box.style.display='block';
+  box.textContent += '[PROMISE REJECTION] '+e.reason+'\n';
+});
+</script>
 <div id="gc">
   <div id="hud">
     <span id="lvl-hud">Level 1</span>
@@ -137,30 +146,30 @@ canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;curso
     <span>🏆 <span id="best">--</span>s</span>
     <span>💀 <span id="deaths">0</span></span>
   </div>
-  <div id="canvas-wrap"><canvas id="c"></canvas>
-  <!-- Manette virtuelle (mobile uniquement) -->
-  <div id="pad">
-    <div id="stick-zone">
-      <div id="stick-bg"></div>
-      <div id="stick-knob"></div>
-    </div>
-    <div id="btns">
-      <div style="position:relative;width:130px;height:130px;">
-        <div id="btn-up"  class="btn" style="position:absolute;top:0;right:34px;">↑</div>
-        <div id="btn-jump" class="btn" style="position:absolute;bottom:0;right:0;">⬆</div>
-        <div id="btn-dash" class="btn" style="position:absolute;bottom:0;right:70px;">✦</div>
-        <div id="btn-restart" class="btn" style="position:absolute;top:0;right:0;width:36px;height:36px;font-size:10px;">↺</div>
-        <div id="btn-menu" class="btn" style="position:absolute;top:0;left:0;width:36px;height:36px;font-size:9px;background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">☰</div>
-      </div>
-    </div>
-  </div>
-  </div>
+  <div id="canvas-wrap"><canvas id="c"></canvas></div>
   <div id="ctrl">
     <span><kbd>←</kbd><kbd>→</kbd> Move</span>
     <span><kbd>Z</kbd>/<kbd>Space</kbd> Jump</span>
     <span><kbd>X</kbd> Dash</span>
     <span><kbd>Space</kbd>+wall Wall-jump</span>
     <span><kbd>R</kbd> Restart</span>
+  </div>
+</div>
+
+<!-- Manette virtuelle (mobile uniquement) -->
+<div id="pad">
+  <div id="stick-zone">
+    <div id="stick-bg"></div>
+    <div id="stick-knob"></div>
+  </div>
+  <div id="btns">
+    <div style="position:relative;width:130px;height:130px;">
+      <div id="btn-up"  class="btn" style="position:absolute;top:0;right:34px;">↑</div>
+      <div id="btn-jump" class="btn" style="position:absolute;bottom:0;right:0;">⬆</div>
+      <div id="btn-dash" class="btn" style="position:absolute;bottom:0;right:70px;">✦</div>
+      <div id="btn-restart" class="btn" style="position:absolute;top:0;right:0;width:36px;height:36px;font-size:10px;">↺</div>
+      <div id="btn-menu" class="btn" style="position:absolute;top:0;left:0;width:36px;height:36px;font-size:9px;background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">☰</div>
+    </div>
   </div>
 </div>
 
@@ -1642,25 +1651,6 @@ window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=fa
         }
       });
     } else if(menuState==='leaderboard'||menuState==='ghost'){
-      if(menuState==='ghost'){
-        // Tap sur un niveau dans la liste
-        const visibleCount=Math.min(LEVEL_DEFS.length,8);
-        const pw=360,ph=visibleCount*32+28;
-        const px=W/2-pw/2,py=78;
-        const scroll=Math.max(0,ghostMenuCursor-visibleCount+2);
-        for(let i=0;i<visibleCount;i++){
-          const idx=i+scroll;
-          if(idx>=LEVEL_DEFS.length)break;
-          const iy=py+24+i*32;
-          if(cx>=px && cx<=px+pw && cy>=iy-16 && cy<=iy+12){
-            ghostMenuCursor=idx;
-            startGhostMode(ghostMenuCursor);
-            return;
-          }
-        }
-        // Bouton retour
-        if(cy>H-40){ menuState='main';menuCursor=1; return; }
-      }
       // Tap n'importe où pour revenir
       const bx=W/2-40,by=H-50;
       if(cx>=bx-20&&cx<=bx+80&&cy>=by-16&&cy<=by+20){
@@ -1668,25 +1658,6 @@ window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=fa
       }
       // Aussi accepter un tap en dehors du panel central
       if(cx<W*0.1||cx>W*0.9||cy<H*0.1){menuState='main';}
-    } else if(menuState==='dressing'){
-      // Tap sur un skin
-      const pw=500,ph=240;
-      const px=W/2-pw/2,py=62;
-      const cols=6,rows=2;
-      const cellW=pw/cols,cellH=80;
-      const startY=py+16;
-      PLAYER_COLORS.forEach((c,i)=>{
-        const col=i%cols,row=Math.floor(i/cols);
-        const cx2=px+col*cellW;
-        const cy2=startY+row*cellH;
-        if(cx>=cx2 && cx<=cx2+cellW && cy>=cy2 && cy<=cy2+cellH){
-          dressingCursor=i;
-          selectedColorIdx=i;
-          applyPlayerColor(i);
-        }
-      });
-      // Retour si tap hors panel
-      if(cy>py+ph+60){menuState='main';menuCursor=5;startThemeMusic('title');}
     } else if(menuState==='settings'){
       // Tap sur les items settings
       const pw=320,ph=220,px=W/2-pw/2,py=68;
@@ -1708,6 +1679,9 @@ window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=fa
       });
       // Retour si tap hors panel
       if(cx<px||cx>px+pw||cy<py||cy>py+ph+20){menuState='main';menuCursor=3;}
+    } else if(menuState==='dressing'){
+      // Retour
+      if(cy>H-50){menuState='main';menuCursor=5;startThemeMusic('title');}
     } else if(menuState==='keys'){
       // Retour
       if(cy>H-50){menuState='main';menuCursor=4;}
@@ -3402,15 +3376,22 @@ function drawWon(){
 // ── Boucle ────────────────────────────────────────────────────────
 let last=0;
 function loop(ts){
-  if(ts-last>=16){
-    last=ts;
-    updateFade();
-    update();
-    if(state==='title'){drawTitle();drawFadeOverlay();}
-    else if(state==='levelwon'){drawLevelWon();drawFadeOverlay();}
-    else if(state==='won'){drawWon();drawFadeOverlay();}
-    else{drawGame();drawFadeOverlay();}
+  try{
+    if(ts-last>=16){
+      last=ts;
+      updateFade();
+      update();
+      if(state==='title'){drawTitle();drawFadeOverlay();}
+      else if(state==='levelwon'){drawLevelWon();drawFadeOverlay();}
+      else if(state==='won'){drawWon();drawFadeOverlay();}
+      else{drawGame();drawFadeOverlay();}
+    }
+  }catch(err){
+    var box=document.getElementById('debug-err');
+    if(box){box.style.display='block';box.textContent='[LOOP ERROR] '+err.message+'\n'+err.stack;}
   }
+  var hb=document.getElementById('debug-hb');
+  if(hb)hb.textContent='loop ok | W='+W+' H='+H+' state='+state+' menuState='+menuState+' C.w='+C.width+' C.h='+C.height+' ts='+Math.floor(ts);
   requestAnimationFrame(loop);
 }
 
