@@ -168,8 +168,8 @@ nav a:hover{color:#96d46e;}
 @media(max-width:700px){
   #layout{padding:8px 4px;gap:6px;}
   #arcade-title{font-size:18px;letter-spacing:4px;}
-  #arcade-bezel{padding:6px;}
-  #game-frame{width:100%;height:80vh;max-width:100%;}
+  #arcade-bezel{padding:6px;width:100%;box-sizing:border-box;}
+  #game-frame{width:100%;max-width:100%;display:block;}
   #score-bar{font-size:6px;gap:10px;}
   #content-section{padding:20px 12px 10px;}
   .controls-grid{grid-template-columns:1fr;}
@@ -343,6 +343,27 @@ footer a:hover{color:#96d46e;}
   </p>
 
 </div>
+
+<script>
+// Ajuste dynamiquement la hauteur de l'iframe sur mobile,
+// en se basant sur la hauteur réelle disponible (évite les bugs de "vh" mobile).
+function sizeGameFrame(){
+  var frame = document.getElementById('game-frame');
+  if(!frame) return;
+  var isMobile = window.matchMedia('(max-width:700px)').matches;
+  if(isMobile){
+    var rect = frame.getBoundingClientRect();
+    var available = (window.visualViewport ? window.visualViewport.height : window.innerHeight) - rect.top - 90;
+    available = Math.max(available, 320);
+    frame.style.height = available + 'px';
+  } else {
+    frame.style.height = '506px';
+  }
+}
+window.addEventListener('load', sizeGameFrame);
+window.addEventListener('resize', sizeGameFrame);
+if(window.visualViewport) window.visualViewport.addEventListener('resize', sizeGameFrame);
+</script>
 
 </body>
 </html>
