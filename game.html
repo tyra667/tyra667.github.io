@@ -166,18 +166,18 @@ window.addEventListener('unhandledrejection', function(e){
 
 <!-- Manette virtuelle (mobile uniquement) -->
 <div id="pad">
+  <!-- Bouton plein écran — coin supérieur droit du pad -->
+  <div id="btn-fs" class="btn" style="position:absolute;top:8px;right:8px;width:46px;height:46px;font-size:14px;z-index:60;background:rgba(150,212,110,0.15);border-color:rgba(150,212,110,0.45);">⛶</div>
   <div id="stick-zone">
     <div id="stick-bg"></div>
     <div id="stick-knob"></div>
   </div>
   <div id="btns">
-    <div style="position:relative;width:172px;height:172px;">
-      <div id="btn-up"  class="btn" style="position:absolute;top:0;right:46px;">↑</div>
-      <div id="btn-jump" class="btn" style="position:absolute;bottom:0;right:0;">⬆</div>
-      <div id="btn-dash" class="btn" style="position:absolute;bottom:0;right:94px;">✦</div>
+    <div style="position:relative;width:210px;height:172px;">
+      <div id="btn-jump" class="btn" style="position:absolute;bottom:0;right:0;width:100px;height:100px;font-size:30px;">⬆</div>
+      <div id="btn-dash" class="btn" style="position:absolute;bottom:0;right:116px;width:100px;height:100px;font-size:20px;">✦</div>
       <div id="btn-restart" class="btn" style="position:absolute;top:0;right:0;width:46px;height:46px;font-size:12px;">↺</div>
-      <div id="btn-menu" class="btn" style="position:absolute;top:0;left:0;width:46px;height:46px;font-size:11px;background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">☰</div>
-      <div id="btn-fs" class="btn" style="position:absolute;top:54px;left:0;width:46px;height:46px;font-size:14px;background:rgba(150,212,110,0.15);border-color:rgba(150,212,110,0.45);">⛶</div>
+      <div id="btn-menu" class="btn" style="position:absolute;top:0;right:54px;width:46px;height:46px;font-size:11px;background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.2);">☰</div>
     </div>
   </div>
 </div>
@@ -1588,14 +1588,6 @@ window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=fa
   btnDash.addEventListener('touchend',onDashEnd,{passive:false});
   btnDash.addEventListener('touchcancel',onDashEnd,{passive:false});
 
-  // Bouton HAUT (pour dash diagonal/wall-jump)
-  const btnUp=document.getElementById('btn-up');
-  function onUpStart(e){e.preventDefault();keys['ArrowUp']=true;}
-  function onUpEnd(e){e.preventDefault();keys['ArrowUp']=false;}
-  btnUp.addEventListener('touchstart',onUpStart,{passive:false});
-  btnUp.addEventListener('touchend',onUpEnd,{passive:false});
-  btnUp.addEventListener('touchcancel',onUpEnd,{passive:false});
-
   // Bouton RESTART
   const btnR=document.getElementById('btn-restart');
   btnR.addEventListener('touchstart',e=>{
@@ -1685,13 +1677,12 @@ window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=fa
           else if(i===5){menuState='dressing';dressingCursor=selectedColorIdx;startThemeMusic('dressing');}
         }
       });
-    } else if(menuState==='leaderboard'||menuState==='ghost'){
+    } else if(menuState==='leaderboard'){
       // Tap n'importe où pour revenir
       const bx=W/2-40,by=H-50;
       if(cx>=bx-20&&cx<=bx+80&&cy>=by-16&&cy<=by+20){
-        menuState='main';menuCursor=menuState==='leaderboard'?2:1;
+        menuState='main';menuCursor=2;
       }
-      // Aussi accepter un tap en dehors du panel central
       if(cx<W*0.1||cx>W*0.9||cy<H*0.1){menuState='main';}
     } else if(menuState==='settings'){
       // Tap sur les items settings
@@ -1715,8 +1706,48 @@ window.addEventListener('keyup',e=>{ if(nameInputActive) return; keys[e.code]=fa
       // Retour si tap hors panel
       if(cx<px||cx>px+pw||cy<py||cy>py+ph+20){menuState='main';menuCursor=3;}
     } else if(menuState==='dressing'){
-      // Retour
-      if(cy>H-50){menuState='main';menuCursor=5;startThemeMusic('title');}
+      // Tap sur une case couleur → changer de curseur + sélectionner
+      const pw=500,ph=240;
+      const px=W/2-pw/2,py=62;
+      const cols=6,cellW=pw/cols,cellH=80;
+      const startY=py+16;
+      let hit=false;
+      for(let i=0;i<PLAYER_COLORS.length;i++){
+        const col=i%cols,row=Math.floor(i/cols);
+        const x0=px+col*cellW,x1=x0+cellW;
+        const y0=startY+row*cellH,y1=y0+cellH;
+        if(cx>=x0&&cx<=x1&&cy>=y0&&cy<=y1){
+          dressingCursor=i;
+          selectedColorIdx=i;
+          localStorage.setItem('dashr_colorIdx',i);
+          hit=true;break;
+        }
+      }
+      // Retour si tap en dehors du panel
+      if(!hit&&(cy>H-50||cx<px-20||cx>px+pw+20)){menuState='main';menuCursor=5;startThemeMusic('title');}
+    } else if(menuState==='ghost'){
+      // Tap sur un niveau → le sélectionner et lancer
+      const visibleCount=Math.min(LEVEL_DEFS.length,8);
+      const pw=360;
+      const px=W/2-pw/2,py=78;
+      const scroll=Math.max(0,ghostMenuCursor-visibleCount+2);
+      let hit=false;
+      for(let i=0;i<visibleCount;i++){
+        const idx=i+scroll;
+        if(idx>=LEVEL_DEFS.length)break;
+        const iy=py+24+i*32;
+        if(cy>=iy-16&&cy<=iy+16&&cx>=px&&cx<=px+pw){
+          if(ghostMenuCursor===idx){
+            // Second tap : lancer
+            startGhostMode(idx);
+          } else {
+            ghostMenuCursor=idx;
+          }
+          hit=true;break;
+        }
+      }
+      // Retour si tap hors panel
+      if(!hit){menuState='main';menuCursor=1;}
     } else if(menuState==='keys'){
       // Retour
       if(cy>H-50){menuState='main';menuCursor=4;}
