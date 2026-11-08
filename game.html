@@ -1861,14 +1861,11 @@ function nextLevel(){
 }
 
 function startDash(){
+  // Dash strictement horizontal (pas de diagonale) : direction tenue, sinon direction du personnage
   const dx=(keys['ArrowRight']||keys[settings.keys.right])?1:(keys['ArrowLeft']||keys[settings.keys.left])?-1:(player.facingRight?1:-1);
-  const dy=(keys['ArrowUp'])?-1:(keys['ArrowDown'])?1:0;
-  const len=Math.sqrt(dx*dx+dy*dy);
-  // Boost diagonal : on garde la norme pleine sur chaque axe plutôt que de la diviser
-  const diag=dy!==0&&dx!==0;
-  const speed=diag?5.5*1.2:5.5;
-  player.dashVx=(dx/len)*speed;
-  player.dashVy=dy!==0?(dy/len)*speed:0;
+  const speed=5.5;
+  player.dashVx=dx*speed;
+  player.dashVy=0;
   player.dashing=true;player.dashTimer=12;
   player.canDash=false;player.vx=0;player.vy=0;
   sfxDash();
